@@ -7,6 +7,9 @@ SLOT_TYPE_GUARD = "G"
 SLOT_TYPE_FORWARD = "F"
 SLOT_TYPE_UTIL = "UTIL"
 
+SPECIFIC_SLOT_TYPES = [SLOT_TYPE_POINT_GUARD, SLOT_TYPE_SHOOTING_GUARD, SLOT_TYPE_SMALL_FORWARD, SLOT_TYPE_POWER_FORWARD, SLOT_TYPE_CENTER]
+GENERIC_SLOT_TYPES = [SLOT_TYPE_GUARD, SLOT_TYPE_FORWARD, SLOT_TYPE_UTIL]
+
 class ActivePlayerSlot {
     constructor(slotId, slotType) {
         this.slotId = slotId;
@@ -33,21 +36,36 @@ class Player {
 }
 
 class RosterState {
-    constructor(slots, players, currentMapping) {
+    constructor(slots, players, mapping) {
         this.slots = slots;
         this.players = players;
-        this.currentMapping = currentMapping;
+        this.mapping = mapping;
     }
 
-    isActive(player) {
-        return Array.from(this.currentMapping.values())
+    getSlotById(slotId) {
+        return this.slots.find(s => s.slotId === slotId);
+    }
+
+    getPlayerById(playerId) {
+        return this.players.find(p => p.playerId === playerId);
+    }
+
+    isPlayerActive(player) {
+        return Array.from(this.mapping.values())
             .filter(p => p !== null)
             .map(p => p.playerId)
             .includes(player.playerId);
     }
 
+    currentSlot(player) {
+        const slotId = Array.from(this.mapping.entries())
+            .filter(([slotId, p]) => p !== null && player.playerId === p.playerId)
+            .map(([slotId, p]) => slotId);
+        return this.getSlotById(slotId);
+    }
+
     assignPlayer(player, slot) {
-        this.currentMapping.set(slot.slotId, player);
+        this.mapping.set(slot.slotId, player);
     }
 }
 
@@ -155,7 +173,7 @@ function getRosterState() {
 }
 
 function isRosterPerfect(rosterState) {
-    const playersInAction = Array.from(rosterState.currentMapping.values()).filter(p => p !== null && p.isPlaying);
+    const playersInAction = Array.from(rosterState.mapping.values()).filter(p => p !== null && p.isPlaying);
     const potentialPlayers = rosterState.players.filter(p => p.isPlaying);
     return playersInAction.length === potentialPlayers.length;
 }
@@ -180,7 +198,7 @@ function playerMatchesSlot(player, slot) {
 }
 
 function slotIsAvailable(rosterState, slot) {
-    const currentPlayer = rosterState.currentMapping.get(slot.slotId);
+    const currentPlayer = rosterState.mapping.get(slot.slotId);
     return currentPlayer === null || !currentPlayer.isPlaying;
 }
 
@@ -191,7 +209,7 @@ function getFirstPossibleSlot(rosterState, player) {
 }
 
 function calculateTrivialMoves(rosterState) {
-    const missingPlayers = rosterState.players.filter(p => !rosterState.isActive(p) && p.isPlaying);
+    const missingPlayers = rosterState.players.filter(p => !rosterState.isPlayerActive(p) && p.isPlaying);
     for (const player of missingPlayers) {
         const firstPossibleSlot = getFirstPossibleSlot(rosterState, player);
         if (firstPossibleSlot === null) {
@@ -202,36 +220,75 @@ function calculateTrivialMoves(rosterState) {
     }
 }
 
+function findMoreSpecificSlot(rosterState, player, currentSlot) {
+    if (!GENERIC_SLOT_TYPES.includes(currentSlot.slotType)) {
+        return currentSlot;
+    }
+    const candidateSlots = rosterState.slots
+        .filter(s => SPECIFIC_SLOT_TYPES.includes(s.slotType))
+        .filter(s => slotIsAvailable(rosterState, s))
+        .filter(s => playerMatchesSlot(player, s))
+    return candidateSlots ? candidateSlots[0] : currentSlot;
+}
+
+function preferSpecificSlots(rosterState) {
+    const activePlayers = rosterState.players.filter(p => rosterState.isPlayerActive(p));
+    for (const player of activePlayers) {
+        const currentSlot = rosterState.currentSlot(player);
+        const newSlot = findMoreSpecificSlot(rosterState, player, currentSlot);
+        rosterState.assignPlayer(player, newSlot);
+    }
+}
+
 function determineLineup(rosterState) {
     if (isRosterPerfect(rosterState)) {
         return rosterState;
     }
-    const newRosterState = new RosterState(rosterState.slots, rosterState.players, new Map(rosterState.currentMapping));
+    const newRosterState = new RosterState(rosterState.slots, rosterState.players, new Map(rosterState.mapping));
     calculateTrivialMoves(newRosterState);
+    if (!isRosterPerfect(newRosterState)) {
+        preferSpecificSlots(newRosterState);
+    }
     return newRosterState;
 }
 
-function performMoves(currentRosterState, newRosterState) {
-    for (const [slotId, player] of newRosterState.currentMapping) {
-        if (player === null) {
-            continue;
-        }
-        const playerId = player.playerId;
-        const currentPlayer = currentRosterState.currentMapping.get(slotId);
-        if (currentPlayer === null || currentPlayer.playerId !== player.playerId) {
-            const moveButton = document.getElementById(`pncButtonMove_${player.playerId}`);
-            moveButton.click();
-            const dropButton = document.getElementById(`pncButtonHere_${slotId}`);
-            dropButton.click();
+function getMoveButton(player) {
+    return document.getElementById(`pncButtonMove_${player.playerId}`);
+}
+
+function getHereButton(slotId) {
+    const slotRows = document.getElementsByClassName("pncPlayerRow");
+    return slotRows[slotId].getElementsByClassName("pncButtonHere")[0];
+}
+
+function performMove(currentRosterState, newMapping) {
+    const [[slotId, player], ...remainingMapping] = newMapping;
+    const currentPlayer = currentRosterState.mapping.get(slotId);
+    let movedPlayer = false;
+    if (currentPlayer === null || currentPlayer.playerId !== player.playerId) {
+        getMoveButton(player).click();
+        getHereButton(slotId).click();
+        movedPlayer = true;
+    }
+    if (remainingMapping.length > 0) {
+        if (movedPlayer) {
+            setTimeout(() => performMove(currentRosterState, remainingMapping), 0);
+        } else {
+            performMove(currentRosterState, remainingMapping);
         }
     }
 }
 
+function performMoves(currentRosterState, newRosterState) {
+    const mapping = Array.from(newRosterState.mapping);
+    performMove(currentRosterState, mapping);
+}
+
 function performAutoSetup() {
     const rosterState = getRosterState();
-    console.debug("Current roster state", rosterState);
+    console.debug("Current active players", rosterState.mapping);
     const newRosterState = determineLineup(rosterState);
-    console.debug("Suggested new roster state", newRosterState);
+    console.debug("Suggested new active players", newRosterState.mapping);
     performMoves(rosterState, newRosterState);
 }
 
