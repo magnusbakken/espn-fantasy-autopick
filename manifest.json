@@ -1,0 +1,18 @@
+{
+    "manifest_version": 2,
+    "name": "ESPN NBA Fantasy Team Auto Setup",
+    "version": "2.0",
+
+    "description": "Adds a button that automatically adds active players to the current roster in an ESPN NBA fantasy league.",
+
+    "page_action": {
+        "default_title": "ESPN NBA Fantasy Team Auto Setup"
+    },
+    "permissions": ["tabs", "*://games.espn.com/fba/clubhouse/*"],
+    "content_scripts": [
+      {
+        "matches": ["*://*.games.espn.com/*"],
+        "js": ["main.js"]
+      }
+    ]
+  }
