@@ -19,19 +19,24 @@ PLAYER_HEALTH_DAYTODAY = "DTD"
 PLAYER_HEALTH_OUT = "O"
 
 class Player {
-    constructor(playerId, name, positions, health) {
+    constructor(playerId, name, positions, health, opponent) {
         this.playerId = playerId;
         this.name = name;
         this.positions = positions;
         this.health = health;
+        this.opponent = opponent;
+    }
+
+    get isPlaying() {
+        return this.opponent !== null;
     }
 }
 
 class RosterState {
-    constructor(slots, players, current_mapping) {
+    constructor(slots, players, currentMapping) {
         this.slots = slots;
         this.players = players;
-        this.current_mapping = current_mapping;
+        this.currentMapping = currentMapping;
     }
 }
 
@@ -89,6 +94,16 @@ function parseHealth(playerInfoCell) {
     }
 }
 
+function parseOpponent(row) {
+    const matchupCell = row.getElementsByTagName("td")[4];
+    const matchupDiv = matchupCell.getElementsByTagName("div")[0];
+    if (!matchupDiv) {
+        return null;
+    }
+    const opponentTeamLink = matchupDiv.getElementsByTagName("a")[0];
+    return opponentTeamLink.textContent;
+}
+
 function createPlayer(row) {
     const playerInfoCell = row.getElementsByClassName("playertablePlayerName")[0];
     if (!playerInfoCell) {
@@ -99,7 +114,8 @@ function createPlayer(row) {
     const name = playerLink.textContent;
     const positions = parsePositions(playerInfoCell);
     const health = parseHealth(playerInfoCell);
-    return new Player(playerId, name, positions, health);
+    const opponent = parseOpponent(row);
+    return new Player(playerId, name, positions, health, opponent);
 }
 
 function getRosterState() {
@@ -107,13 +123,16 @@ function getRosterState() {
     const { starterRows, benchRows } = getRosterRows(table);
     const slots = [];
     const players = [];
+    const mapping = new Map();
     let slotId = 1;
     for (const row of starterRows) {
-        slots.push(createActivePlayerSlot(row, slotId++));
+        const slot = createActivePlayerSlot(row, slotId++);
+        slots.push(slot);
         const player = createPlayer(row);
         if (player !== null) {
             players.push(player);
         }
+        mapping.set(slot.slotId, player);
     }
     for (const row of benchRows) {
         const player = createPlayer(row);
@@ -121,11 +140,17 @@ function getRosterState() {
             players.push(player);
         }
     }
-    console.log(starterRows);
-    console.log(benchRows);
-    console.log(slots);
-    console.log(players);
-    return undefined;
+    return new RosterState(slots, players, mapping);
+}
+
+function isRosterPerfect(rosterState) {
+    const playersInAction = Array.from(rosterState.currentMapping.values()).filter(p => p !== null && p.isPlaying);
+    const potentialPlayers = rosterState.players.filter(p => p.isPlaying);
+    return playersInAction.length === potentialPlayers.length;
+}
+
+function determineLineup(rosterState) {
+    console.log("is perfect?", isRosterPerfect(rosterState));
 }
 
 function addResetButton() {
@@ -136,6 +161,8 @@ function addResetButton() {
     autoSetupButton.textContent = "Auto";
     autoSetupButton.onclick = function() {
         const rosterState = getRosterState();
+        console.log(rosterState);
+        determineLineup(rosterState);
     }
     resetButton.parentNode.insertBefore(autoSetupButton, resetButton);
 }
