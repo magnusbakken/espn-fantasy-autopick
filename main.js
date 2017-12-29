@@ -33,6 +33,16 @@ class Player {
     get isPlaying() {
         return this.opponent !== null;
     }
+
+    isHealthierThan(otherPlayer) {
+        if (this.health === PLAYER_HEALTH_HEALTHY && otherPlayer.health !== PLAYER_HEALTH_HEALTHY) {
+            return true;
+        } else if (this.health === PLAYER_HEALTH_DAYTODAY && otherPlayer.health === PLAYER_HEALTH_OUT) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 }
 
 class RosterState {
@@ -240,6 +250,28 @@ function preferSpecificSlots(rosterState) {
     }
 }
 
+function findHealthierBenchReplacement(rosterState, player, slot) {
+    const health = player.health;
+    for (const benchPlayer of rosterState.players.filter(p => !rosterState.isPlayerActive(p))) {
+        if (playerMatchesSlot(benchPlayer, slot) && benchPlayer.isHealthierThan(player)) {
+            return benchPlayer;
+        }
+    }
+    return null;
+}
+
+function preferHealthyPlayers(rosterState) {
+    const unhealthyPlayers = rosterState.players.filter(p => p.health !== PLAYER_HEALTH_HEALTHY);
+    for (const player of unhealthyPlayers) {
+        const slot = rosterState.currentSlot(player);
+        const replacement = findHealthierBenchReplacement(rosterState, player, slot);
+        if (replacement !== null) {
+            console.debug("Replacing injured player with healthier player", player, replacement);
+            rosterState.assignPlayer(replacement, slot);
+        }
+    }
+}
+
 function determineLineup(rosterState) {
     if (isRosterPerfect(rosterState)) {
         return rosterState;
@@ -248,6 +280,9 @@ function determineLineup(rosterState) {
     calculateTrivialMoves(newRosterState);
     if (!isRosterPerfect(newRosterState)) {
         preferSpecificSlots(newRosterState);
+    }
+    if (!isRosterPerfect(newRosterState)) {
+        preferHealthyPlayers(newRosterState);
     }
     return newRosterState;
 }
