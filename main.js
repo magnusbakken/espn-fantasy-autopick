@@ -160,8 +160,23 @@ function isRosterPerfect(rosterState) {
     return playersInAction.length === potentialPlayers.length;
 }
 
+function positionMatchesSlot(position, slot) {
+    const slotType = slot.slotType;
+    if (slotType === "UTIL") {
+        return true;
+    }
+    switch (position) {
+        case "PG": return slotType === "PG" || slotType === "G";
+        case "SG": return slotType === "SG" || slotType === "G";
+        case "SF": return slotType === "SF" || slotType === "F";
+        case "PF": return slotType === "PF" || slotType === "F";
+        case "C": return slotType === "C";
+        default: throw new Error("Unknown position type: ", position);
+    }
+}
+
 function playerMatchesSlot(player, slot) {
-    return player.positions.includes(slot.slotType);
+    return player.positions.some(position => positionMatchesSlot(position, slot));
 }
 
 function slotIsAvailable(rosterState, slot) {
@@ -172,6 +187,7 @@ function slotIsAvailable(rosterState, slot) {
 function getFirstPossibleSlot(rosterState, player) {
     const availableSlots = rosterState.slots
         .filter(slot => playerMatchesSlot(player, slot) && slotIsAvailable(rosterState, slot));
+    console.log(rosterState.slots, availableSlots, player);
     return availableSlots ? availableSlots[0] : null;
 }
 
@@ -227,8 +243,6 @@ function addAutoSetupButton() {
     autoSetupButton.onclick = performAutoSetup;
     resetButton.parentNode.insertBefore(autoSetupButton, resetButton);
     const submitCell = document.getElementsByClassName("playerTableSubmitCell")[0];
-    console.log(submitCell, autoSetupButton);
-    console.log(submitCell.clientWidth, autoSetupButton);
     submitCell.style.width = `${submitCell.clientWidth + autoSetupButton.clientWidth + 6}px`;
 }
 
