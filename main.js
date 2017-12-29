@@ -58,10 +58,10 @@ class RosterState {
     }
 
     currentSlot(player) {
-        const slotId = Array.from(this.mapping.entries())
+        const slotIds = Array.from(this.mapping.entries())
             .filter(([slotId, p]) => p !== null && player.playerId === p.playerId)
             .map(([slotId, p]) => slotId);
-        return this.getSlotById(slotId);
+        return this.getSlotById(slotIds[0]);
     }
 
     assignPlayer(player, slot) {
@@ -205,7 +205,7 @@ function slotIsAvailable(rosterState, slot) {
 function getFirstPossibleSlot(rosterState, player) {
     const availableSlots = rosterState.slots
         .filter(slot => playerMatchesSlot(player, slot) && slotIsAvailable(rosterState, slot));
-    return availableSlots ? availableSlots[0] : null;
+    return availableSlots.length > 0 ? availableSlots[0] : null;
 }
 
 function calculateTrivialMoves(rosterState) {
@@ -213,7 +213,7 @@ function calculateTrivialMoves(rosterState) {
     for (const player of missingPlayers) {
         const firstPossibleSlot = getFirstPossibleSlot(rosterState, player);
         if (firstPossibleSlot === null) {
-            console.log("No possible slot found for player", player);
+            console.warn("No possible slot found for player", player);
         } else {
             rosterState.assignPlayer(player, firstPossibleSlot);
         }
@@ -228,7 +228,7 @@ function findMoreSpecificSlot(rosterState, player, currentSlot) {
         .filter(s => SPECIFIC_SLOT_TYPES.includes(s.slotType))
         .filter(s => slotIsAvailable(rosterState, s))
         .filter(s => playerMatchesSlot(player, s))
-    return candidateSlots ? candidateSlots[0] : currentSlot;
+    return candidateSlots.length > 0 ? candidateSlots[0] : currentSlot;
 }
 
 function preferSpecificSlots(rosterState) {
