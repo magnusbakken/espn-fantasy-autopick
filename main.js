@@ -38,6 +38,17 @@ class RosterState {
         this.players = players;
         this.currentMapping = currentMapping;
     }
+
+    isActive(player) {
+        return Array.from(this.currentMapping.values())
+            .filter(p => p !== null)
+            .map(p => p.playerId)
+            .includes(player.playerId);
+    }
+
+    assignPlayer(player, slot) {
+        this.currentMapping.set(slot.slotId, player);
+    }
 }
 
 function getRosterRows(table) {
@@ -124,7 +135,7 @@ function getRosterState() {
     const slots = [];
     const players = [];
     const mapping = new Map();
-    let slotId = 1;
+    let slotId = 0;
     for (const row of starterRows) {
         const slot = createActivePlayerSlot(row, slotId++);
         slots.push(slot);
@@ -149,22 +160,85 @@ function isRosterPerfect(rosterState) {
     return playersInAction.length === potentialPlayers.length;
 }
 
-function determineLineup(rosterState) {
-    console.log("is perfect?", isRosterPerfect(rosterState));
+function playerMatchesSlot(player, slot) {
+    return player.positions.includes(slot.slotType);
 }
 
-function addResetButton() {
+function slotIsAvailable(rosterState, slot) {
+    const currentPlayer = rosterState.currentMapping.get(slot.slotId);
+    return currentPlayer === null || !currentPlayer.isPlaying;
+}
+
+function getFirstPossibleSlot(rosterState, player) {
+    const availableSlots = rosterState.slots
+        .filter(slot => playerMatchesSlot(player, slot) && slotIsAvailable(rosterState, slot));
+    return availableSlots ? availableSlots[0] : null;
+}
+
+function calculateTrivialMoves(rosterState) {
+    const missingPlayers = rosterState.players.filter(p => !rosterState.isActive(p) && p.isPlaying);
+    for (const player of missingPlayers) {
+        const firstPossibleSlot = getFirstPossibleSlot(rosterState, player);
+        if (firstPossibleSlot === null) {
+            console.log("No possible slot found for player", player);
+        } else {
+            rosterState.assignPlayer(player, firstPossibleSlot);
+        }
+    }
+}
+
+function determineLineup(rosterState) {
+    if (isRosterPerfect(rosterState)) {
+        return rosterState;
+    }
+    const newRosterState = new RosterState(rosterState.slots, rosterState.players, new Map(rosterState.currentMapping));
+    calculateTrivialMoves(newRosterState);
+    return newRosterState;
+}
+
+function performMoves(currentRosterState, newRosterState) {
+    for (const [slotId, player] of newRosterState.currentMapping) {
+        const playerId = player.playerId;
+        const currentPlayer = currentRosterState.currentMapping.get(slotId);
+        if (currentPlayer === null || currentPlayer.playerId !== player.playerId) {
+            const moveButton = document.getElementById(`pncButtonMove_${player.playerId}`);
+            moveButton.click();
+            const dropButton = document.getElementById(`pncButtonHere_${slotId}`);
+            dropButton.click();
+        }
+    }
+}
+
+function performAutoSetup() {
+    const rosterState = getRosterState();
+    console.debug("Current roster state", rosterState);
+    const newRosterState = determineLineup(rosterState);
+    console.debug("Suggested new roster state", newRosterState);
+    performMoves(rosterState, newRosterState);
+}
+
+function addAutoSetupButton() {
     const resetButton = document.getElementById("pncTopResetButton");
     const autoSetupButton = document.createElement("div");
+    autoSetupButton.id = "pncTopAutoButton";
     autoSetupButton.className = "pncTopButton pncTopButtonText";
     autoSetupButton.style = "margin-left: 6px";
     autoSetupButton.textContent = "Auto";
-    autoSetupButton.onclick = function() {
-        const rosterState = getRosterState();
-        console.log(rosterState);
-        determineLineup(rosterState);
-    }
+    autoSetupButton.onclick = performAutoSetup;
     resetButton.parentNode.insertBefore(autoSetupButton, resetButton);
+    const submitCell = document.getElementsByClassName("playerTableSubmitCell")[0];
+    console.log(submitCell, autoSetupButton);
+    console.log(submitCell.clientWidth, autoSetupButton);
+    submitCell.style.width = `${submitCell.clientWidth + autoSetupButton.clientWidth + 6}px`;
 }
 
-addResetButton();
+addAutoSetupButton();
+
+const containerDiv = document.getElementById("playerTableContainerDiv");
+const observer = new MutationObserver(mutations => {
+    const mutation = mutations.filter(m => m.target === containerDiv)[0];
+    if (mutation && Array.from(mutation.addedNodes).some(n => n.id === "playerTableFramedForm")) {
+        addAutoSetupButton();
+    }
+});
+observer.observe(containerDiv, { childList: true, subtree: true });
