@@ -77,6 +77,15 @@ class RosterState {
     assignPlayer(player, slot) {
         this.mapping.set(slot.slotId, player);
     }
+
+    isEquivalentTo(otherRosterState) {
+        for (const [key, value] of this.mapping.entries()) {
+            if (value !== otherRosterState.mapping.get(key)) {
+                return false;
+            }
+        }
+        return true;
+    }
 }
 
 function getRosterRows(table) {
@@ -300,7 +309,8 @@ function performMove(currentRosterState, newMapping) {
     const [[slotId, player], ...remainingMapping] = newMapping;
     const currentPlayer = currentRosterState.mapping.get(slotId);
     let movedPlayer = false;
-    if (currentPlayer === null || currentPlayer.playerId !== player.playerId) {
+    if (player !== null && (currentPlayer === null || currentPlayer.playerId !== player.playerId)) {
+        console.debug("Moving player to slot", player, slotId);
         getMoveButton(player).click();
         getHereButton(slotId).click();
         movedPlayer = true;
@@ -321,10 +331,14 @@ function performMoves(currentRosterState, newRosterState) {
 
 function performAutoSetup() {
     const rosterState = getRosterState();
-    console.debug("Current active players", rosterState.mapping);
     const newRosterState = determineLineup(rosterState);
-    console.debug("Suggested new active players", newRosterState.mapping);
-    performMoves(rosterState, newRosterState);
+    if (rosterState.isEquivalentTo(newRosterState)) {
+        console.debug("No moves are necessary");
+    } else {
+        console.debug("Current active players", rosterState.mapping);
+        console.debug("Suggested new active players", newRosterState.mapping);
+        performMoves(rosterState, newRosterState);
+    }
 }
 
 function addAutoSetupButton() {
