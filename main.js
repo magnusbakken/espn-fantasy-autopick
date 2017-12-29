@@ -187,7 +187,6 @@ function slotIsAvailable(rosterState, slot) {
 function getFirstPossibleSlot(rosterState, player) {
     const availableSlots = rosterState.slots
         .filter(slot => playerMatchesSlot(player, slot) && slotIsAvailable(rosterState, slot));
-    console.log(rosterState.slots, availableSlots, player);
     return availableSlots ? availableSlots[0] : null;
 }
 
@@ -214,6 +213,9 @@ function determineLineup(rosterState) {
 
 function performMoves(currentRosterState, newRosterState) {
     for (const [slotId, player] of newRosterState.currentMapping) {
+        if (player === null) {
+            continue;
+        }
         const playerId = player.playerId;
         const currentPlayer = currentRosterState.currentMapping.get(slotId);
         if (currentPlayer === null || currentPlayer.playerId !== player.playerId) {
