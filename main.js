@@ -227,41 +227,50 @@ function getFirstPossibleSlot(rosterState, player) {
     return availableSlots.length > 0 ? availableSlots[0] : null;
 }
 
-function calculateTrivialMoves(rosterState) {
+function determineTrivialMoves(rosterState) {
+    let foundChange = false;
     const missingPlayers = rosterState.players.filter(p => !rosterState.isPlayerActive(p) && p.isPlaying);
     for (const player of missingPlayers) {
         const firstPossibleSlot = getFirstPossibleSlot(rosterState, player);
         if (firstPossibleSlot === null) {
-            console.warn("No possible slot found for player", player);
+            console.debug("No possible slot found for player", player);
         } else {
+            console.debug("Assigning player to first possible slot", player, firstPossibleSlot);
             rosterState.assignPlayer(player, firstPossibleSlot);
+            foundChange = true;
         }
     }
+    return foundChange;
 }
 
 function findMoreSpecificSlot(rosterState, player, currentSlot) {
     if (!GENERIC_SLOT_TYPES.includes(currentSlot.slotType)) {
-        return currentSlot;
+        return null;
     }
     const candidateSlots = rosterState.slots
         .filter(s => SPECIFIC_SLOT_TYPES.includes(s.slotType))
         .filter(s => slotIsAvailable(rosterState, s))
         .filter(s => playerMatchesSlot(player, s))
-    return candidateSlots.length > 0 ? candidateSlots[0] : currentSlot;
+    return candidateSlots.length > 0 ? candidateSlots[0] : null;
 }
 
 function preferSpecificSlots(rosterState) {
+    let foundChange = false;
     const activePlayers = rosterState.players.filter(p => rosterState.isPlayerActive(p));
     for (const player of activePlayers) {
         const currentSlot = rosterState.currentSlot(player);
-        const newSlot = findMoreSpecificSlot(rosterState, player, currentSlot);
-        rosterState.assignPlayer(player, newSlot);
+        const moreSpecificSlot = findMoreSpecificSlot(rosterState, player, currentSlot);
+        if (moreSpecificSlot !== null) {
+            console.debug("Moving active player to more specific slot", player, moreSpecificSlot);
+            rosterState.assignPlayer(player, moreSpecificSlot);
+            foundChange = true;
+        }
     }
+    return foundChange;
 }
 
 function findHealthierBenchReplacement(rosterState, player, slot) {
-    const health = player.health;
-    for (const benchPlayer of rosterState.players.filter(p => !rosterState.isPlayerActive(p))) {
+    for (const benchPlayer of rosterState.players.filter(p => !rosterState.isPlayerActive(p) && p.isPlaying)) {
         if (playerMatchesSlot(benchPlayer, slot) && benchPlayer.isHealthierThan(player)) {
             return benchPlayer;
         }
@@ -270,15 +279,19 @@ function findHealthierBenchReplacement(rosterState, player, slot) {
 }
 
 function preferHealthyPlayers(rosterState) {
-    const unhealthyPlayers = rosterState.players.filter(p => p.health !== PLAYER_HEALTH_HEALTHY);
+    let foundChange = false;
+    const unhealthyPlayers = rosterState.players
+        .filter(p => rosterState.isPlayerActive(p) && p.health !== PLAYER_HEALTH_HEALTHY);
     for (const player of unhealthyPlayers) {
         const slot = rosterState.currentSlot(player);
         const replacement = findHealthierBenchReplacement(rosterState, player, slot);
         if (replacement !== null) {
             console.debug("Replacing injured player with healthier player", player, replacement);
             rosterState.assignPlayer(replacement, slot);
+            foundChange = true;
         }
     }
+    return foundChange;
 }
 
 function determineLineup(rosterState) {
@@ -286,12 +299,19 @@ function determineLineup(rosterState) {
         return rosterState;
     }
     const newRosterState = new RosterState(rosterState.slots, rosterState.players, new Map(rosterState.mapping));
-    calculateTrivialMoves(newRosterState);
-    if (!isRosterPerfect(newRosterState)) {
-        preferSpecificSlots(newRosterState);
-    }
-    if (!isRosterPerfect(newRosterState)) {
-        preferHealthyPlayers(newRosterState);
+    let foundChange = true;
+    let idx = 0;
+    while (foundChange && !isRosterPerfect(newRosterState) && idx < 10) {
+        idx++;
+        // Keep making changes while we have something to do. Sometimes a later change allows another change on the next iteration.
+        // We keep track of the number of iterations to avoid catastrophic failure due to an infinite loop here.
+        foundChange = determineTrivialMoves(newRosterState);
+        if (!isRosterPerfect(newRosterState)) {
+            foundChange = foundChange | preferSpecificSlots(newRosterState);
+        }
+        if (!isRosterPerfect(newRosterState)) {
+            foundChange = foundChange | preferHealthyPlayers(newRosterState);
+        }
     }
     return newRosterState;
 }
@@ -315,6 +335,7 @@ function performMove(currentRosterState, newMapping) {
         getHereButton(slotId).click();
         movedPlayer = true;
     }
+    // Perform moves recursively with setTimeout to avoid UI update timing issues.
     if (remainingMapping.length > 0) {
         if (movedPlayer) {
             setTimeout(() => performMove(currentRosterState, remainingMapping), 0);
@@ -325,8 +346,7 @@ function performMove(currentRosterState, newMapping) {
 }
 
 function performMoves(currentRosterState, newRosterState) {
-    const mapping = Array.from(newRosterState.mapping);
-    performMove(currentRosterState, mapping);
+    performMove(currentRosterState, Array.from(newRosterState.mapping));
 }
 
 function performAutoSetup() {
