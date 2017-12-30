@@ -361,14 +361,22 @@ function performAutoSetup() {
     }
 }
 
-function addAutoSetupButton() {
-    const resetButton = document.getElementById("pncTopResetButton");
+function createAutoSetupButton() {
     const autoSetupButton = document.createElement("div");
     autoSetupButton.id = "pncTopAutoButton";
     autoSetupButton.className = "pncTopButton pncTopButtonText";
     autoSetupButton.style = "margin-left: 6px";
     autoSetupButton.textContent = "Auto";
     autoSetupButton.onclick = performAutoSetup;
+    return autoSetupButton;
+}
+
+function addAutoSetupButton() {
+    const resetButton = document.getElementById("pncTopResetButton");
+    if (!resetButton) {
+        return;
+    }
+    const autoSetupButton = createAutoSetupButton();
     resetButton.parentNode.insertBefore(autoSetupButton, resetButton);
     const submitCell = document.getElementsByClassName("playerTableSubmitCell")[0];
     submitCell.style.width = `${submitCell.clientWidth + autoSetupButton.clientWidth + 6}px`;

@@ -24,7 +24,8 @@
     "content_scripts": [
       {
         "matches": ["*://*.games.espn.com/*"],
-        "js": ["autosetup.js"]
+        "js": ["autosetup.js"],
+        "run_at": "document_end"
       }
     ]
   }
