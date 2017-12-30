@@ -1,14 +1,14 @@
-SLOT_TYPE_POINT_GUARD = "PG"
-SLOT_TYPE_SHOOTING_GUARD = "SG"
-SLOT_TYPE_SMALL_FORWARD = "SF"
-SLOT_TYPE_POWER_FORWARD = "PF"
-SLOT_TYPE_CENTER = "C"
-SLOT_TYPE_GUARD = "G"
-SLOT_TYPE_FORWARD = "F"
-SLOT_TYPE_UTIL = "UTIL"
+SLOT_TYPE_POINT_GUARD = "PG";
+SLOT_TYPE_SHOOTING_GUARD = "SG";
+SLOT_TYPE_SMALL_FORWARD = "SF";
+SLOT_TYPE_POWER_FORWARD = "PF";
+SLOT_TYPE_CENTER = "C";
+SLOT_TYPE_GUARD = "G";
+SLOT_TYPE_FORWARD = "F";
+SLOT_TYPE_UTIL = "UTIL";
 
-SPECIFIC_SLOT_TYPES = [SLOT_TYPE_POINT_GUARD, SLOT_TYPE_SHOOTING_GUARD, SLOT_TYPE_SMALL_FORWARD, SLOT_TYPE_POWER_FORWARD, SLOT_TYPE_CENTER]
-GENERIC_SLOT_TYPES = [SLOT_TYPE_GUARD, SLOT_TYPE_FORWARD, SLOT_TYPE_UTIL]
+SPECIFIC_SLOT_TYPES = [SLOT_TYPE_POINT_GUARD, SLOT_TYPE_SHOOTING_GUARD, SLOT_TYPE_SMALL_FORWARD, SLOT_TYPE_POWER_FORWARD, SLOT_TYPE_CENTER];
+GENERIC_SLOT_TYPES = [SLOT_TYPE_GUARD, SLOT_TYPE_FORWARD, SLOT_TYPE_UTIL];
 
 class ActivePlayerSlot {
     constructor(slotId, slotType) {
@@ -17,9 +17,10 @@ class ActivePlayerSlot {
     }
 }
 
-PLAYER_HEALTH_HEALTHY = "HEALTHY"
-PLAYER_HEALTH_DAYTODAY = "DTD"
-PLAYER_HEALTH_OUT = "O"
+PLAYER_HEALTH_HEALTHY = "HEALTHY";
+PLAYER_HEALTH_DAYTODAY = "DTD";
+PLAYER_HEALTH_OUT = "O";
+PLAYER_HEALTH_SUSPENDED = "SSPD";
 
 class Player {
     constructor(playerId, name, positions, health, opponent) {
@@ -35,12 +36,16 @@ class Player {
     }
 
     isHealthierThan(otherPlayer) {
-        if (this.health === PLAYER_HEALTH_HEALTHY && otherPlayer.health !== PLAYER_HEALTH_HEALTHY) {
-            return true;
-        } else if (this.health === PLAYER_HEALTH_DAYTODAY && otherPlayer.health === PLAYER_HEALTH_OUT) {
-            return true;
-        } else {
-            return false;
+        // The order of preference is HEALTHY > DAYTODAY > OUT > SUSPENDED.
+        switch (this.health) {
+            case PLAYER_HEALTH_HEALTHY:
+                return otherPlayer.health !== PLAYER_HEALTH_HEALTHY;
+            case PLAYER_HEALTH_DAYTODAY:
+                return otherPlayer.health !== PLAYER_HEALTH_HEALTHY && otherPlayer.health !== PLAYER_HEALTH_DAYTODAY;
+            case PLAYER_HEALTH_OUT:
+                return otherPlayer.health === PLAYER_HEALTH_SUSPENDED;
+            default:
+                return false;
         }
     }
 }
@@ -138,6 +143,7 @@ function parseHealth(playerInfoCell) {
     switch (healthString) {
         case "DTD": return PLAYER_HEALTH_DAYTODAY;
         case "O": return PLAYER_HEALTH_OUT;
+        case "SSPD": return PLAYER_HEALTH_SUSPENDED;
         default: return PLAYER_HEALTH_HEALTHY;
     }
 }
