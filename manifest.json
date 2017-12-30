@@ -1,7 +1,7 @@
 {
     "manifest_version": 2,
     "name": "ESPN NBA Fantasy Team Auto Setup",
-    "version": "2.0",
+    "version": "1.0",
 
     "description": "Adds a button that automatically adds active players to the current roster in an ESPN NBA fantasy league.",
 
