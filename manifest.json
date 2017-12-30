@@ -12,7 +12,7 @@
     "content_scripts": [
       {
         "matches": ["*://*.games.espn.com/*"],
-        "js": ["main.js"]
+        "js": ["autosetup.js"]
       }
     ]
   }
