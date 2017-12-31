@@ -22,6 +22,8 @@ PLAYER_HEALTH_DAYTODAY = "DTD";
 PLAYER_HEALTH_OUT = "O";
 PLAYER_HEALTH_SUSPENDED = "SSPD";
 
+PLAYER_HEALTH_LEVELS = [PLAYER_HEALTH_HEALTHY, PLAYER_HEALTH_DAYTODAY, PLAYER_HEALTH_OUT, PLAYER_HEALTH_SUSPENDED];
+
 class Player {
     constructor(playerId, name, positions, health, opponent) {
         this.playerId = playerId;
@@ -33,20 +35,6 @@ class Player {
 
     get isPlaying() {
         return this.opponent !== null;
-    }
-
-    isHealthierThan(otherPlayer) {
-        // The order of preference is HEALTHY > DAYTODAY > OUT > SUSPENDED.
-        switch (this.health) {
-            case PLAYER_HEALTH_HEALTHY:
-                return otherPlayer.health !== PLAYER_HEALTH_HEALTHY;
-            case PLAYER_HEALTH_DAYTODAY:
-                return otherPlayer.health !== PLAYER_HEALTH_HEALTHY && otherPlayer.health !== PLAYER_HEALTH_DAYTODAY;
-            case PLAYER_HEALTH_OUT:
-                return otherPlayer.health === PLAYER_HEALTH_SUSPENDED;
-            default:
-                return false;
-        }
     }
 }
 
@@ -65,11 +53,8 @@ class RosterState {
         return this.players.find(p => p.playerId === playerId);
     }
 
-    isPlayerActive(player) {
-        return Array.from(this.mapping.values())
-            .filter(p => p !== null)
-            .map(p => p.playerId)
-            .includes(player.playerId);
+    currentPlayer(slot) {
+        return this.mapping.get(slot.slotId);
     }
 
     currentSlot(player) {
@@ -197,12 +182,6 @@ function getRosterState() {
     return new RosterState(slots, players, mapping);
 }
 
-function isRosterPerfect(rosterState) {
-    const playersInAction = Array.from(rosterState.mapping.values()).filter(p => p !== null && p.isPlaying);
-    const potentialPlayers = rosterState.players.filter(p => p.isPlaying);
-    return playersInAction.length === potentialPlayers.length;
-}
-
 function positionMatchesSlot(position, slot) {
     const slotType = slot.slotType;
     if (slotType === "UTIL") {
@@ -222,102 +201,57 @@ function playerMatchesSlot(player, slot) {
     return player.positions.some(position => positionMatchesSlot(position, slot));
 }
 
-function slotIsAvailable(rosterState, slot) {
-    const currentPlayer = rosterState.mapping.get(slot.slotId);
-    return currentPlayer === null || !currentPlayer.isPlaying;
-}
-
-function getFirstPossibleSlot(rosterState, player) {
-    const availableSlots = rosterState.slots
-        .filter(slot => playerMatchesSlot(player, slot) && slotIsAvailable(rosterState, slot));
-    return availableSlots.length > 0 ? availableSlots[0] : null;
-}
-
-function determineTrivialMoves(rosterState) {
-    let foundChange = false;
-    const missingPlayers = rosterState.players.filter(p => !rosterState.isPlayerActive(p) && p.isPlaying);
-    for (const player of missingPlayers) {
-        const firstPossibleSlot = getFirstPossibleSlot(rosterState, player);
-        if (firstPossibleSlot === null) {
-            console.debug("No possible slot found for player", player);
-        } else {
-            console.debug("Assigning player to first possible slot", player, firstPossibleSlot);
-            rosterState.assignPlayer(player, firstPossibleSlot);
-            foundChange = true;
+function getHealthiestPlayers(players) {
+    for (const healthLevel of PLAYER_HEALTH_LEVELS) {
+        const playersAtLevel = players.filter(p => p.health === healthLevel);
+        if (playersAtLevel.length > 0) {
+            return playersAtLevel;
         }
     }
-    return foundChange;
+    return [];
 }
 
-function findMoreSpecificSlot(rosterState, player, currentSlot) {
-    if (!GENERIC_SLOT_TYPES.includes(currentSlot.slotType)) {
+function findBestPlayerForSlot(rosterState, slot, availablePlayers) {
+    const possiblePlayers = availablePlayers.filter(p => playerMatchesSlot(p, slot));
+    if (possiblePlayers.length === 0) {
+        console.debug("No possible player found for slot", slot);
         return null;
+    } else if (possiblePlayers.length === 1) {
+        const onlyPlayer = possiblePlayers[0];
+        console.debug("Single eligible player found for slot", slot, onlyPlayer);
+        return onlyPlayer;
     }
-    const candidateSlots = rosterState.slots
-        .filter(s => SPECIFIC_SLOT_TYPES.includes(s.slotType))
-        .filter(s => slotIsAvailable(rosterState, s))
-        .filter(s => playerMatchesSlot(player, s))
-    return candidateSlots.length > 0 ? candidateSlots[0] : null;
+    const healthiestPlayers = getHealthiestPlayers(possiblePlayers);
+    if (healthiestPlayers.length === 1) {
+        const healthiestPlayer = healthiestPlayers[0];
+        console.debug("Single player with best health status found for slot", slot, healthiestPlayer);
+        return healthiestPlayer;
+    }
+    const currentPlayer = rosterState.currentPlayer(slot);
+    if (currentPlayer !== null && healthiestPlayers.map(p => p.playerId).includes(currentPlayer.playerId)) {
+        console.debug("Keeping current player for slot", slot, currentPlayer);
+        return currentPlayer;
+    }
+    const chosenPlayer = healthiestPlayers[0];
+    console.debug("Arbitrarily choosing first possible player for slot", slot, chosenPlayer);
+    return chosenPlayer;
 }
 
-function preferSpecificSlots(rosterState) {
-    let foundChange = false;
-    const activePlayers = rosterState.players.filter(p => rosterState.isPlayerActive(p));
-    for (const player of activePlayers) {
-        const currentSlot = rosterState.currentSlot(player);
-        const moreSpecificSlot = findMoreSpecificSlot(rosterState, player, currentSlot);
-        if (moreSpecificSlot !== null) {
-            console.debug("Moving active player to more specific slot", player, moreSpecificSlot);
-            rosterState.assignPlayer(player, moreSpecificSlot);
-            foundChange = true;
-        }
-    }
-    return foundChange;
-}
-
-function findHealthierBenchReplacement(rosterState, player, slot) {
-    for (const benchPlayer of rosterState.players.filter(p => !rosterState.isPlayerActive(p) && p.isPlaying)) {
-        if (playerMatchesSlot(benchPlayer, slot) && benchPlayer.isHealthierThan(player)) {
-            return benchPlayer;
-        }
-    }
-    return null;
-}
-
-function preferHealthyPlayers(rosterState) {
-    let foundChange = false;
-    const unhealthyPlayers = rosterState.players
-        .filter(p => rosterState.isPlayerActive(p) && p.health !== PLAYER_HEALTH_HEALTHY);
-    for (const player of unhealthyPlayers) {
-        const slot = rosterState.currentSlot(player);
-        const replacement = findHealthierBenchReplacement(rosterState, player, slot);
-        if (replacement !== null) {
-            console.debug("Replacing injured player with healthier player", player, replacement);
-            rosterState.assignPlayer(replacement, slot);
-            foundChange = true;
-        }
-    }
-    return foundChange;
-}
-
-function determineLineup(rosterState) {
-    if (isRosterPerfect(rosterState)) {
-        return rosterState;
-    }
+function calculateNewRoster(rosterState) {
     const newRosterState = new RosterState(rosterState.slots, rosterState.players, new Map(rosterState.mapping));
-    let foundChange = true;
-    let idx = 0;
-    while (foundChange && !isRosterPerfect(newRosterState) && idx < 10) {
-        idx++;
-        // Keep making changes while we have something to do. Sometimes a later change allows another change on the next iteration.
-        // We keep track of the number of iterations to avoid catastrophic failure due to an infinite loop here.
-        foundChange = determineTrivialMoves(newRosterState);
-        if (!isRosterPerfect(newRosterState)) {
-            foundChange = foundChange | preferSpecificSlots(newRosterState);
+    const availablePlayers = rosterState.players.filter(p => p.isPlaying);
+    for (const slot of rosterState.slots) {
+        let chosenPlayer = findBestPlayerForSlot(rosterState, slot, availablePlayers);
+        if (chosenPlayer === null) {
+            // No active player can fill the slot. Keep the current inactive player in the slot if possible.
+            const currentPlayer = rosterState.currentPlayer(slot);
+            if (currentPlayer !== null && availablePlayers.includes(currentPlayer)) {
+                chosenPlayer = currentPlayer;
+            }
+        } else {
+            availablePlayers.splice(availablePlayers.indexOf(chosenPlayer), 1);
         }
-        if (!isRosterPerfect(newRosterState)) {
-            foundChange = foundChange | preferHealthyPlayers(newRosterState);
-        }
+        newRosterState.assignPlayer(chosenPlayer, slot);
     }
     return newRosterState;
 }
@@ -326,9 +260,18 @@ function getMoveButton(player) {
     return document.getElementById(`pncButtonMove_${player.playerId}`);
 }
 
+function getSelectedMoveButton(player) {
+    return document.getElementById(`pncButtonMoveSelected_${player.playerId}`);
+}
+
 function getHereButton(slotId) {
-    const slotRows = document.getElementsByClassName("pncPlayerRow");
-    return slotRows[slotId].getElementsByClassName("pncButtonHere")[0];
+    const slotRow = document.getElementsByClassName("pncPlayerRow")[slotId];
+    const hereButtons = Array.from(slotRow.getElementsByClassName("pncButtonHere"));
+    // Sometimes invisible buttons are left behind when the slot has been touched previously.
+    const visibleHereButtons = hereButtons.filter(e => e.style.display !== "none");
+    // If we can't find any buttons it could be because we're attempting to move a player from a slot of the same type.
+    // The ESPN page doesn't allow this.
+    return visibleHereButtons.length > 0 ? visibleHereButtons[0] : null;
 }
 
 function performMove(currentRosterState, newMapping) {
@@ -343,7 +286,15 @@ function performMove(currentRosterState, newMapping) {
         // Without this we get intermittent errors from the click handlers on the ESPN page.
         getMoveButton(player).click();
         setTimeout(() => {
-            getHereButton(slotId).click();
+            const hereButton = getHereButton(slotId);
+            if (hereButton === null) {
+                // If we can't find a Here button it's because the move isn't possible for some reason.
+                // The most likely reason for this is that we're attempting to move a player in a UTIL slot to a different UTIL slot.
+                // We need to "roll back" the move by clicking the Move button again, which is unfortunately a separate HTML element.
+                getSelectedMoveButton(player).click();
+            } else {
+                hereButton.click();
+            }
             setTimeout(() => performMove(currentRosterState, remainingMapping), 10);
         }, 10);
     } else {
@@ -357,7 +308,7 @@ function performMoves(currentRosterState, newRosterState) {
 
 function performAutoSetup() {
     const rosterState = getRosterState();
-    const newRosterState = determineLineup(rosterState);
+    const newRosterState = calculateNewRoster(rosterState);
     if (rosterState.isEquivalentTo(newRosterState)) {
         console.debug("No moves are necessary");
     } else {
