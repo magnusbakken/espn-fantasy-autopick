@@ -36,6 +36,10 @@ class Player {
     get isPlaying() {
         return this.opponent !== null;
     }
+
+    compareHealth(otherPlayer) {
+        return PLAYER_HEALTH_LEVELS.indexOf(this.health) <= PLAYER_HEALTH_LEVELS.indexOf(otherPlayer.health);
+    }
 }
 
 class RosterState {
@@ -45,12 +49,16 @@ class RosterState {
         this.mapping = mapping;
     }
 
+    get hasRoomForEveryone() {
+        return this.players.filter(p => p.isPlaying).length <= this.slots.length;
+    }
+
     getSlotById(slotId) {
-        return this.slots.find(s => s.slotId === slotId);
+        return this.slots.find(s => s.slotId === slotId) || null;
     }
 
     getPlayerById(playerId) {
-        return this.players.find(p => p.playerId === playerId);
+        return this.players.find(p => p.playerId === playerId) || null;
     }
 
     currentPlayer(slot) {
@@ -221,20 +229,30 @@ function findBestPlayerForSlot(rosterState, slot, availablePlayers) {
         console.debug("Single eligible player found for slot", slot, onlyPlayer);
         return onlyPlayer;
     }
+    // We can keep an injured player in their current slot if there are enough slots for all players with games.
+    // If there aren't enough spots the current player must be moved.
     const healthiestPlayers = getHealthiestPlayers(possiblePlayers);
-    if (healthiestPlayers.length === 1) {
-        const healthiestPlayer = healthiestPlayers[0];
-        console.debug("Single player with best health status found for slot", slot, healthiestPlayer);
-        return healthiestPlayer;
-    }
     const currentPlayer = rosterState.currentPlayer(slot);
-    if (currentPlayer !== null && healthiestPlayers.map(p => p.playerId).includes(currentPlayer.playerId)) {
+    const currentPlayerIsPlaying = currentPlayer !== null && possiblePlayers.map(p => p.playerId).includes(currentPlayer.playerId);
+    const currentPlayerIsHealthy = currentPlayer !== null && healthiestPlayers.map(p => p.playerId).includes(currentPlayer.playerId);
+    if (currentPlayerIsPlaying && (rosterState.hasRoomForEveryone || currentPlayerIsHealthy)) {
         console.debug("Keeping current player for slot", slot, currentPlayer);
         return currentPlayer;
     }
-    const chosenPlayer = healthiestPlayers[0];
-    console.debug("Arbitrarily choosing first possible player for slot", slot, chosenPlayer);
-    return chosenPlayer;
+    // Don't choose a player who's already in a different slot of the same type. The ESPN page doesn't allow you to move a player from a slot
+    // to another slot with the same type. In practice this only applies to moving from one UTIL slot to a different one.
+    const playersWithCurrentSlots = possiblePlayers.map(p => [p, rosterState.currentSlot(p)]);
+    playersWithCurrentSlots.sort(([p1, slot1], [p2, slot2]) => p1.compareHealth(p2));
+    while (playersWithCurrentSlots.length > 0) {
+        const [player, currentSlot] = playersWithCurrentSlots[0];
+        if (currentSlot === null || currentSlot.slotType !== slot.slotType) {
+            console.debug("Choosing first available player", slot, player);
+            return player;
+        }
+        playersWithCurrentSlots.splice(0, 1);
+    }
+    console.debug("All available players are already occupying same slot type", slot);
+    return null;
 }
 
 function calculateNewRoster(rosterState) {
