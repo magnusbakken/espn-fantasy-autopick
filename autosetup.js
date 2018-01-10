@@ -38,7 +38,7 @@ class Player {
     }
 
     compareHealth(otherPlayer) {
-        return PLAYER_HEALTH_LEVELS.indexOf(this.health) <= PLAYER_HEALTH_LEVELS.indexOf(otherPlayer.health);
+        return PLAYER_HEALTH_LEVELS.indexOf(this.health) >= PLAYER_HEALTH_LEVELS.indexOf(otherPlayer.health);
     }
 }
 
