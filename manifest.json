@@ -13,19 +13,27 @@
         "64": "icon-64.png",
         "128": "icon-128.png"
     },
-
+    "commands": {
+        "perform-automatic-setup": {
+            "suggested_key": {
+                "default": "Ctrl+Shift+A",
+                "mac": "Command+Shift+A"
+            },
+            "description": "Perform automatic team setup"
+        }
+    },
     "background": {
-      "scripts": ["background.js"],
-      "persistent": false
+        "scripts": ["background.js"],
+        "persistent": false
     },
     "page_action": {
         "default_title": "ESPN NBA Fantasy Team Auto Setup"
     },
     "content_scripts": [
-      {
-        "matches": ["*://*.games.espn.com/*"],
-        "js": ["autosetup.js"],
-        "run_at": "document_end"
-      }
+        {
+            "matches": ["*://*.games.espn.com/fba/clubhouse*"],
+            "js": ["autosetup.js"],
+            "run_at": "document_end"
+        }
     ]
-  }
+}
