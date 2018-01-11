@@ -17,10 +17,6 @@ function performAutoSetup() {
     chrome.tabs.executeScript(null, { code: "performAutoSetup()" });
 }
 
-chrome.pageAction.onClicked.addListener(function(tab) {
-    performAutoSetup();
-});
-
 chrome.commands.onCommand.addListener(function(command) {
     if (command === "perform-automatic-setup") {
         performAutoSetup();

@@ -324,18 +324,6 @@ function performMoves(currentRosterState, newRosterState) {
     performMove(currentRosterState, Array.from(newRosterState.mapping));
 }
 
-function performAutoSetup() {
-    const rosterState = getRosterState();
-    const newRosterState = calculateNewRoster(rosterState);
-    if (rosterState.isEquivalentTo(newRosterState)) {
-        console.debug("No moves are necessary");
-    } else {
-        console.debug("Current active players", rosterState.mapping);
-        console.debug("Suggested new active players", newRosterState.mapping);
-        performMoves(rosterState, newRosterState);
-    }
-}
-
 function createAutoSetupButton() {
     const autoSetupButton = document.createElement("div");
     autoSetupButton.id = "pncTopAutoButton";
@@ -367,3 +355,21 @@ const observer = new MutationObserver(mutations => {
     }
 });
 observer.observe(containerDiv, { childList: true, subtree: true });
+
+function performAutoSetup() {
+    const rosterState = getRosterState();
+    const newRosterState = calculateNewRoster(rosterState);
+    if (rosterState.isEquivalentTo(newRosterState)) {
+        console.debug("No moves are necessary");
+    } else {
+        console.debug("Current active players", rosterState.mapping);
+        console.debug("Suggested new active players", newRosterState.mapping);
+        performMoves(rosterState, newRosterState);
+    }
+}
+
+chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
+    if (message === "perform-auto-setup") {
+        performAutoSetup();
+    }
+});

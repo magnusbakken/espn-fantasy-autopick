@@ -27,7 +27,8 @@
         "persistent": false
     },
     "page_action": {
-        "default_title": "ESPN NBA Fantasy Team Auto Setup"
+        "default_title": "ESPN NBA Fantasy Team Auto Setup",
+        "default_popup": "popup.html"
     },
     "content_scripts": [
         {
