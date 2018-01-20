@@ -75,7 +75,7 @@ function on(selector, event, action) {
 document.addEventListener("DOMContentLoaded", () => {
     console.debug("Loading settings...");
     const manifest = chrome.runtime.getManifest();
-    document.querySelector(".versionNumber").innerText = manifest.version;
+    document.querySelector(".settings-version-number").innerText = manifest.version;
     withSettings(settings => {
         restoreSettings(settings);
         originalSettings = settings;

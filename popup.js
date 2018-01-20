@@ -36,7 +36,7 @@ function on(selector, event, action) {
 document.addEventListener("DOMContentLoaded", () => {
     console.debug("Loading popup...");
     const manifest = chrome.runtime.getManifest();
-    document.querySelector(".versionNumber").innerText = `(${manifest.version})`;
+    document.querySelector(".popup-version-number").innerText = `(${manifest.version})`;
     withSettings(restoreSettings);
 
     on("#setupCurrentPageButton", "click", performAutoSetup);
