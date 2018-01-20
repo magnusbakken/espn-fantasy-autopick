@@ -7,7 +7,7 @@
         "tabs",
         "declarativeContent",
         "storage",
-        "*://games.espn.com/fba/clubhouse/*"
+        "*://games.espn.com/fba/clubhouse*"
     ],
     "icons": {
         "32": "icon-32.png",

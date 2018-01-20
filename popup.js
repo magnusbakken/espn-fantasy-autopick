@@ -17,43 +17,16 @@ function viewOnGitHub() {
     });
 }
 
-DEFAULT_OPTIONS = {
-    autoSave: true
-};
-
-function restoreSettings(settings) {
-    console.debug("Restoring settings", settings);
-    document.getElementById("autoSaveCheckbox").checked = settings.autoSave;
-}
-
-function saveSettings(settings) {
-    console.debug("Saving settings", settings);
-    chrome.storage.sync.set(settings, function() {
-        chrome.tabs.query({ url: "*://*.games.espn.com/fba/clubhouse*" }, function (tabs) {
-            const message = {
-                commandId: "settings-changed",
-                settings: settings,
-            };
-            for (const tab of tabs) {
-                console.debug("Sending updated settings to tab", tab);
-                chrome.tabs.sendMessage(tab.id, message);
-            }
-        })
-    });
-}
-
-function withSettings(action) {
-    chrome.storage.sync.get(DEFAULT_OPTIONS, function (items) {
-        action(items);
-    });
-}
-
 function toggleAutoSave() {
     const checkbox = document.getElementById("autoSaveCheckbox");
     withSettings(settings => {
         settings.autoSave = checkbox.checked;
         saveSettings(settings);
     });
+}
+
+function showSettingsPage() {
+    chrome.runtime.openOptionsPage();
 }
 
 function on(selector, event, action) {
@@ -69,4 +42,5 @@ document.addEventListener("DOMContentLoaded", () => {
     on("#setupCurrentPageButton", "click", performAutoSetup);
     on("#viewOnGitHubButton", "click", viewOnGitHub);
     on("#autoSaveCheckbox", "change", toggleAutoSave);
+    on("#showSettingsPageLink", "click", showSettingsPage);
 });
