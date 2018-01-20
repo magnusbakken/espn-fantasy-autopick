@@ -12,14 +12,3 @@ chrome.runtime.onInstalled.addListener(function() {
         ]);
     });
 });
-
-function performAutoSetup() {
-    chrome.tabs.executeScript(null, { code: "performAutoSetup()" });
-}
-
-chrome.commands.onCommand.addListener(function(command) {
-    console.log("performing auto setup");
-    if (command === "perform-automatic-setup") {
-        performAutoSetup();
-    }
-});

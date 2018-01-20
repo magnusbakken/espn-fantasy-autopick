@@ -6,6 +6,7 @@
     "permissions": [
         "tabs",
         "declarativeContent",
+        "storage",
         "*://games.espn.com/fba/clubhouse/*"
     ],
     "icons": {

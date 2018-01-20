@@ -1,7 +1,12 @@
+body {
+    width:400;
+    padding: 5px;
+}
+
 body, wrapper {
-    min-height: 100vh;
- }
+    min-height: 50vh;
+}
  
- main {
-     flex: 1;
- }
+main {
+    flex: 1;
+}

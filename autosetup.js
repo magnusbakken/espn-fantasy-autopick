@@ -86,6 +86,8 @@ class RosterState {
     }
 }
 
+OPERATION_TIMEOUT_MS = 10;
+
 function getRosterRows(table) {
     const starterRows = [];
     const benchRows = [];
@@ -292,6 +294,10 @@ function getHereButton(slotId) {
     return visibleHereButtons.length > 0 ? visibleHereButtons[0] : null;
 }
 
+function getSubmitButton() {
+    return document.getElementById("pncSaveRoster0");
+}
+
 function performMove(currentRosterState, newMapping) {
     if (newMapping.length === 0) {
         return;
@@ -313,8 +319,8 @@ function performMove(currentRosterState, newMapping) {
             } else {
                 hereButton.click();
             }
-            setTimeout(() => performMove(currentRosterState, remainingMapping), 10);
-        }, 10);
+            setTimeout(() => performMove(currentRosterState, remainingMapping), OPERATION_TIMEOUT_MS);
+        }, OPERATION_TIMEOUT_MS);
     } else {
         performMove(currentRosterState, remainingMapping);
     }
@@ -356,7 +362,23 @@ const observer = new MutationObserver(mutations => {
 });
 observer.observe(containerDiv, { childList: true, subtree: true });
 
+function saveChanges() {
+    console.debug("Saving changes");
+    const button = getSubmitButton();
+    button.click();
+}
+
+const currentSettings = {
+    autoSave: true,
+};
+
+function updateSettings(settings) {
+    console.debug("Updating extension settings", settings);
+    currentSettings.autoSave = settings.autoSave;
+}
+
 function performAutoSetup() {
+    console.debug("Performing auto-setup with current settings", currentSettings);
     const rosterState = getRosterState();
     const newRosterState = calculateNewRoster(rosterState);
     if (rosterState.isEquivalentTo(newRosterState)) {
@@ -365,12 +387,17 @@ function performAutoSetup() {
         console.debug("Current active players", rosterState.mapping);
         console.debug("Suggested new active players", newRosterState.mapping);
         performMoves(rosterState, newRosterState);
+        if (currentSettings.autoSave) {
+            setTimeout(() => saveChanges(), OPERATION_TIMEOUT_MS);
+        }
     }
 }
 
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
-    console.log("performing auto setup");
-    if (message === "perform-auto-setup") {
-        performAutoSetup();
+    console.debug("Received message", message);
+    if (message.commandId === "perform-auto-setup") {
+        performAutoSetup(currentSettings.autoSave);
+    } else if (message.commandId === "settings-changed") {
+        updateSettings(message.settings);
     }
 });
