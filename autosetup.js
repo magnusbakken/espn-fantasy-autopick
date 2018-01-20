@@ -369,6 +369,7 @@ function performAutoSetup() {
 }
 
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
+    console.log("performing auto setup");
     if (message === "perform-auto-setup") {
         performAutoSetup();
     }

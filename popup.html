@@ -1,12 +1,34 @@
 <html>
     <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <title>ESPN NBA Fantasy Auto-Setup</title>
+
+        <link href="bootstrap.min.css" rel="stylesheet">
+        <link href="popup.css" rel="stylesheet">
+
         <script type="text/javascript" src="popup.js"></script>
     </head>
-    <body style="width:400; height:200px">
-        <p>Automatically set up your ESPN NBA Fantasy team.</p>
-        <hr>
-        <p><button id="setupCurrentPageButton">Set up team on current page</button></p>
-        <hr>
-        <button><img src="GitHub-Mark-32px.png"> View on GitHub</button>
+    <body style="width:400; height:150; padding: 5px">
+        <wrapper class="d-flex flex-column">
+            <nav class="navbar navbar-light bg-faded">
+                <a class="navbar-brand">
+                    <img src="icon-32.png" width="32" height="32" class="d-inline-block align-top" alt="">
+                    ESPN NBA Fantasy Auto-Setup <span id="versionSpan"></span>
+                </a>
+            </nav>
+            <main>
+                <hr>
+                <button id="setupCurrentPageButton" class="btn btn-lg btn-link">Set up team on current page</button>
+                <hr>
+            </main>
+            <footer class="text-right">
+                <button id="viewOnGitHubButton" class="btn btn-lg btn-link"><img src="GitHub-Mark-32px.png" alt="GitHub"></button>
+            </footer>
+        </wrapper>
+        <script src="jquery-3.2.1.slim.min.js"></script>
+        <script src="popper.min.js"></script>
+        <script src="bootstrap.min.js"></script>
     </body>
 </html>
