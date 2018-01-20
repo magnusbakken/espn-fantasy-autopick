@@ -34,7 +34,7 @@
     "content_scripts": [
         {
             "matches": ["*://*.games.espn.com/fba/clubhouse*"],
-            "js": ["autosetup.js"],
+            "js": ["data.js", "autosetup.js"],
             "run_at": "document_end"
         }
     ]
