@@ -10,9 +10,9 @@
         "*://games.espn.com/fba/clubhouse*"
     ],
     "icons": {
-        "32": "icon-32.png",
-        "64": "icon-64.png",
-        "128": "icon-128.png"
+        "32": "assets/icon-32.png",
+        "64": "assets/icon-64.png",
+        "128": "assets/icon-128.png"
     },
     "commands": {
         "perform-automatic-setup": {
