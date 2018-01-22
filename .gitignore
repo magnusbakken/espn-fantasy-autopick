@@ -1,3 +1,9 @@
+# NPM/Yarn
+node_modules/
+
+# Build
+build/
+
 ### VisualStudioCode ###
 .vscode/*
 !.vscode/settings.json
