@@ -126,8 +126,9 @@ function getSubmitButton() {
     return document.getElementById("pncSaveRoster0");
 }
 
-function performMove(currentRosterState, newMapping) {
+function performMove(currentRosterState, newMapping, whenFinished) {
     if (newMapping.length === 0) {
+        whenFinished();
         return;
     }
     const [[slotId, player], ...remainingMapping] = newMapping;
@@ -147,15 +148,16 @@ function performMove(currentRosterState, newMapping) {
             } else {
                 hereButton.click();
             }
-            setTimeout(() => performMove(currentRosterState, remainingMapping), OPERATION_TIMEOUT_MS);
+            setTimeout(() => performMove(currentRosterState, remainingMapping, whenFinished), OPERATION_TIMEOUT_MS);
         }, OPERATION_TIMEOUT_MS);
     } else {
-        performMove(currentRosterState, remainingMapping);
+        performMove(currentRosterState, remainingMapping, whenFinished);
     }
 }
 
-function performMoves(currentRosterState, newRosterState) {
-    performMove(currentRosterState, Array.from(newRosterState.mapping));
+function performMoves(currentRosterState, newRosterState, autoSave) {
+    const whenFinished = autoSave ? saveChanges : () => {};
+    performMove(currentRosterState, Array.from(newRosterState.mapping), whenFinished);
 }
 
 function createAutoSetupButton() {
@@ -214,10 +216,7 @@ function performAutoSetup() {
     } else {
         console.debug("Current active players", rosterState.mapping);
         console.debug("Suggested new active players", newRosterState.mapping);
-        performMoves(rosterState, newRosterState);
-        if (currentSettings.autoSave) {
-            setTimeout(() => saveChanges(), OPERATION_TIMEOUT_MS);
-        }
+        performMoves(rosterState, newRosterState, currentSettings.autoSave);
     }
 }
 
