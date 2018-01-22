@@ -5,10 +5,14 @@ function zipFiles(filePaths, outputPath) {
     const path = require("path");
     const zip = new require("node-zip")();
     for (const filePath of filePaths) {
-        zip.file(filePath, fs.readFileSync(path.join(cwd, filePath)));
+        const fullPath = path.join(cwd, filePath);
+        console.log(`Adding ${fullPath} to archive...`);
+        zip.file(filePath, fs.readFileSync(fullPath));
     }
     const data = zip.generate({ base64: false, compression: 'DEFLATE' });
+    console.log(`Writing archive to ${outputPath}...`);
     fs.writeFileSync(outputPath, data, "binary");
+    console.log("Finished!");
 }
 
 const optionDefinitions = [
@@ -24,7 +28,7 @@ if (!options.inputFiles) {
     process.exit(1);
 } else if (!options.zipPath) {
     console.error("No zip file output path given (--zipPath)");
-    process.exit(2);
+    process.exit(1);
 } else {
     const inputFilesData = fs.readFileSync(options.inputFiles);
     const inputFilesJson = JSON.parse(inputFilesData);
