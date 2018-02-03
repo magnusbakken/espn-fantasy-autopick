@@ -155,14 +155,27 @@ function findBestPlayerForSlot(rosterState, slot, availablePlayers) {
     return null;
 }
 
+function slotsByPreference(rosterState, availablePlayers) {
+    return rosterState.slots
+        .map(slot => [slot, numberOfPossiblePlayers(slot, availablePlayers)])
+        .sort(([slot1, amount1], [slot2, amount2]) => {
+            // The sort order here gives preference to slots with fewer total available players.
+            // For slots with the same number of available players, it prefers slots with lower IDs.
+            // This avoids a rare issue with multiple UTIL slots that don't currently contain a player,
+            // in which case the ESPN page will only allow you to add a player to the first empty UTIL slot.
+            if (amount1 !== amount2) {
+                return amount1 - amount2;
+            } else {
+                return slot1.id - slot2.id;
+            }
+        })
+        .map(([slot, _]) => slot);
+}
+
 function calculateNewRoster(rosterState) {
     const newRosterState = new RosterState(rosterState.slots, rosterState.players, new Map(rosterState.mapping));
     const availablePlayers = rosterState.players.filter(p => p.isPlaying);
-    const slots = rosterState.slots
-        .map(slot => [slot, numberOfPossiblePlayers(slot, availablePlayers)])
-        .sort(([slot1, amount1], [slot2, amount2]) => amount1 >= amount2)
-        .map(([slot, _]) => slot);
-    for (const slot of slots) {
+    for (const slot of slotsByPreference(rosterState, availablePlayers)) {
         let chosenPlayer = findBestPlayerForSlot(rosterState, slot, availablePlayers);
         if (chosenPlayer === null) {
             // No active player can fill the slot. Keep the current inactive player in the slot if possible.
