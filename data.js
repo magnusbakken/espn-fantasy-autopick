@@ -115,6 +115,10 @@ function getHealthiestPlayers(players) {
     return [];
 }
 
+function numberOfPossiblePlayers(slot, players) {
+    return players.filter(p => playerMatchesSlot(p, slot)).length;
+}
+
 function findBestPlayerForSlot(rosterState, slot, availablePlayers) {
     const possiblePlayers = availablePlayers.filter(p => playerMatchesSlot(p, slot));
     if (possiblePlayers.length === 0) {
@@ -154,7 +158,11 @@ function findBestPlayerForSlot(rosterState, slot, availablePlayers) {
 function calculateNewRoster(rosterState) {
     const newRosterState = new RosterState(rosterState.slots, rosterState.players, new Map(rosterState.mapping));
     const availablePlayers = rosterState.players.filter(p => p.isPlaying);
-    for (const slot of rosterState.slots) {
+    const slots = rosterState.slots
+        .map(slot => [slot, numberOfPossiblePlayers(slot, availablePlayers)])
+        .sort(([slot1, amount1], [slot2, amount2]) => amount1 >= amount2)
+        .map(([slot, _]) => slot);
+    for (const slot of slots) {
         let chosenPlayer = findBestPlayerForSlot(rosterState, slot, availablePlayers);
         if (chosenPlayer === null) {
             // No active player can fill the slot. Keep the current inactive player in the slot if possible.
