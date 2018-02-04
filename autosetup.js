@@ -108,6 +108,10 @@ function getMoveButton(player) {
     return document.getElementById(`pncButtonMove_${player.playerId}`);
 }
 
+function getLockedButton(player) {
+    return document.getElementById(`pncButtonLocked_${player.playerId}`);
+}
+
 function getSelectedMoveButton(player) {
     return document.getElementById(`pncButtonMoveSelected_${player.playerId}`);
 }
@@ -137,7 +141,18 @@ function performMove(currentRosterState, newMapping, whenFinished) {
         console.debug("Moving player to slot", player, slotId);
         // Wait for a short while between sending clicks to the Move button and to the Here button.
         // Without this we get intermittent errors from the click handlers on the ESPN page.
-        getMoveButton(player).click();
+        const moveButton = getMoveButton(player);
+        if (moveButton === null) {
+            const lockedButton = getLockedButton(player);
+            if (lockedButton === null) {
+                console.error("No Move button found, and we don't know why.")
+            } else {
+                console.debug("Unable to perform move because the player's slot is locked. This is probably because the player's game has already started, or is about to start.");
+            }
+            return;
+        } else {
+            moveButton.click();
+        }
         setTimeout(() => {
             const hereButton = getHereButton(slotId);
             if (hereButton === null) {
