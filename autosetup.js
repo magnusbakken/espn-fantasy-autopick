@@ -176,36 +176,34 @@ function performMoves(currentRosterState, newRosterState, autoSave) {
 }
 
 function createAutoSetupButton() {
-    const autoSetupButton = document.createElement("div");
-    autoSetupButton.id = "pncTopAutoButton";
-    autoSetupButton.className = "pncTopButton pncTopButtonText";
-    autoSetupButton.style = "margin-left: 6px";
-    autoSetupButton.textContent = "Auto";
+    const autoSetupButton = document.createElement("a");
+    autoSetupButton.className = "btn btn--custom ml4 action-buttons btn--alt";
     autoSetupButton.onclick = performAutoSetup;
+    const innerSpan = document.createElement("span");
+    innerSpan.textContent = "Auto";
+    autoSetupButton.appendChild(innerSpan);
     return autoSetupButton;
 }
 
-function addAutoSetupButton() {
-    const resetButton = document.getElementById("pncTopResetButton");
-    if (!resetButton) {
-        return;
-    }
-    const autoSetupButton = createAutoSetupButton();
-    resetButton.parentNode.insertBefore(autoSetupButton, resetButton);
-    const submitCell = document.getElementsByClassName("playerTableSubmitCell")[0];
-    submitCell.style.width = `${submitCell.clientWidth + autoSetupButton.clientWidth + 6}px`;
+function addAutoSetupButton(myTeamButtonsDiv) {
+    myTeamButtonsDiv.appendChild(createAutoSetupButton());
 }
 
-addAutoSetupButton();
-
-const containerDiv = document.getElementById("playerTableContainerDiv");
 const observer = new MutationObserver(mutations => {
-    const mutation = mutations.filter(m => m.target === containerDiv)[0];
-    if (mutation && Array.from(mutation.addedNodes).some(n => n.id === "playerTableFramedForm")) {
-        addAutoSetupButton();
+    for (const mutation of mutations) {
+        const contentNavDiv = Array.from(mutation.addedNodes).filter(n => n.classList && n.classList.contains("content-nav"))[0];
+        if (!contentNavDiv) {
+            continue;
+        }
+        const myTeamButtonsDiv = contentNavDiv.getElementsByClassName("myTeamButtons")[0];
+        if (!myTeamButtonsDiv) {
+            console.warn("Unable to find expected div with class name 'myTeamButtons'");
+            break;
+        }
+        addAutoSetupButton(myTeamButtonsDiv);
     }
 });
-observer.observe(containerDiv, { childList: true, subtree: true });
+observer.observe(document.body, { childList: true, subtree: true });
 
 function saveChanges() {
     console.debug("Saving changes");
