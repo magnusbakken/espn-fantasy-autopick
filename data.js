@@ -43,14 +43,29 @@ class Player {
 }
 
 class RosterState {
-    constructor(slots, players, mapping) {
+    constructor(slots, players, starterMapping, benchMapping) {
         this.slots = slots;
         this.players = players;
-        this.mapping = mapping;
+        this.starterMapping = starterMapping;
+        this.benchMapping = benchMapping;
     }
 
     get hasRoomForEveryone() {
         return this.players.filter(p => p.isPlaying).length <= this.slots.length;
+    }
+
+    getCurrentPlayerSlot(player) {
+        for (const [key, value] of this.starterMapping) {
+            if (value.playerId === player.playerId) {
+                return { starter: true, idx: key };
+            }
+        }
+        for (const [key, value] of this.benchMapping) {
+            if (value.playerId === player.playerId) {
+                return { starter: false, idx: key };
+            }
+        }
+        return null;
     }
 
     getSlotById(slotId) {
@@ -62,23 +77,23 @@ class RosterState {
     }
 
     currentPlayer(slot) {
-        return this.mapping.get(slot.slotId);
+        return this.starterMapping.get(slot.slotId);
     }
 
     currentSlot(player) {
-        const slotIds = Array.from(this.mapping.entries())
+        const slotIds = Array.from(this.starterMapping.entries())
             .filter(([slotId, p]) => p !== null && player.playerId === p.playerId)
             .map(([slotId, p]) => slotId);
         return this.getSlotById(slotIds[0]);
     }
 
     assignPlayer(player, slot) {
-        this.mapping.set(slot.slotId, player);
+        this.starterMapping.set(slot.slotId, player);
     }
 
     isEquivalentTo(otherRosterState) {
-        for (const [key, value] of this.mapping.entries()) {
-            if (value !== otherRosterState.mapping.get(key)) {
+        for (const [key, value] of this.starterMapping.entries()) {
+            if (value !== otherRosterState.starterMapping.get(key)) {
                 return false;
             }
         }
@@ -173,7 +188,7 @@ function slotsByPreference(rosterState, availablePlayers) {
 }
 
 function calculateNewRoster(rosterState) {
-    const newRosterState = new RosterState(rosterState.slots, rosterState.players, new Map(rosterState.mapping));
+    const newRosterState = new RosterState(rosterState.slots, rosterState.players, new Map(rosterState.starterMapping), new Map(rosterState.benchMapping));
     const availablePlayers = rosterState.players.filter(p => p.isPlaying);
     for (const slot of slotsByPreference(rosterState, availablePlayers)) {
         let chosenPlayer = findBestPlayerForSlot(rosterState, slot, availablePlayers);

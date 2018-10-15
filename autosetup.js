@@ -1,6 +1,7 @@
 OPERATION_TIMEOUT_MS = 10;
 
-function getRosterRows(container) {
+function getRosterRows() {
+    const container = document.querySelector(".container > .team-page > div:nth-child(3)");
     const tableBodies = container.querySelectorAll("tbody.Table2__tbody");
     const starterTable = tableBodies[0];
     const benchTable = tableBodies[2];
@@ -73,8 +74,8 @@ function createPlayer(row) {
         // This should mean that the slot is currently empty.
         return null;
     }
-    const playerId = parsePlayerId(playerInfoCell);
     const name = playerLink.textContent;
+    const playerId = parsePlayerId(playerInfoCell) || name;
     const positions = parsePositions(playerInfoCell);
     const health = parseHealth(playerInfoCell);
     const opponent = parseOpponent(row);
@@ -82,11 +83,10 @@ function createPlayer(row) {
 }
 
 function getRosterState() {
-    const mainTable = document.querySelector(".container > .team-page > div:nth-child(3)");
-    const { starterRows, benchRows } = getRosterRows(mainTable);
+    const { starterRows, benchRows } = getRosterRows();
     const slots = [];
     const players = [];
-    const mapping = new Map();
+    const starterMapping = new Map();
     let slotId = 0;
     for (const row of starterRows) {
         const slot = createActivePlayerSlot(row, slotId++);
@@ -95,19 +95,29 @@ function getRosterState() {
         if (player !== null) {
             players.push(player);
         }
-        mapping.set(slot.slotId, player);
+        starterMapping.set(slot.slotId, player);
     }
+    const benchMapping = new Map();
+    let benchSlotId = 0;
     for (const row of benchRows) {
         const player = createPlayer(row);
         if (player !== null) {
             players.push(player);
         }
+        benchMapping.set(benchSlotId++, player);
     }
-    return new RosterState(slots, players, mapping);
+    return new RosterState(slots, players, starterMapping, benchMapping);
 }
 
-function getMoveButton(player) {
-    return document.getElementById(`pncButtonMove_${player.playerId}`);
+function getActionButton(row) {
+    return row.querySelector(".move-action-btn") || null;
+}
+
+function getMoveButton(player, rosterState) {
+    const playerSlot = rosterState.getCurrentPlayerSlot(player);
+    const { starterRows, benchRows } = getRosterRows();
+    const rows = playerSlot.isStarter ? starterRows : benchRows;
+    return getActionButton(rows[playerSlot.idx]);
 }
 
 function getLockedButton(player) {
@@ -118,14 +128,8 @@ function getSelectedMoveButton(player) {
     return document.getElementById(`pncButtonMoveSelected_${player.playerId}`);
 }
 
-function getHereButton(slotId) {
-    const slotRow = document.getElementsByClassName("pncPlayerRow")[slotId];
-    const hereButtons = Array.from(slotRow.getElementsByClassName("pncButtonHere"));
-    // Sometimes invisible buttons are left behind when the slot has been touched previously.
-    const visibleHereButtons = hereButtons.filter(e => e.style.display !== "none");
-    // If we can't find any buttons it could be because we're attempting to move a player from a slot of the same type.
-    // The ESPN page doesn't allow this.
-    return visibleHereButtons.length > 0 ? visibleHereButtons[0] : null;
+function getHereButton(slotId, rosterState) {
+    return getActionButton(getRosterRows().starterRows[slotId]);
 }
 
 function getSubmitButton() {
@@ -138,12 +142,12 @@ function performMove(currentRosterState, newMapping, whenFinished) {
         return;
     }
     const [[slotId, player], ...remainingMapping] = newMapping;
-    const currentPlayer = currentRosterState.mapping.get(slotId);
+    const currentPlayer = currentRosterState.starterMapping.get(slotId);
     if (player !== null && (currentPlayer === null || currentPlayer.playerId !== player.playerId)) {
         console.debug("Moving player to slot", player, slotId);
         // Wait for a short while between sending clicks to the Move button and to the Here button.
         // Without this we get intermittent errors from the click handlers on the ESPN page.
-        const moveButton = getMoveButton(player);
+        const moveButton = getMoveButton(player, currentRosterState);
         if (moveButton === null) {
             const lockedButton = getLockedButton(player);
             if (lockedButton === null) {
@@ -156,7 +160,7 @@ function performMove(currentRosterState, newMapping, whenFinished) {
             moveButton.click();
         }
         setTimeout(() => {
-            const hereButton = getHereButton(slotId);
+            const hereButton = getHereButton(slotId, currentRosterState);
             if (hereButton === null) {
                 // If we can't find a Here button it's because the move isn't possible for some reason.
                 // The most likely reason for this is that we're attempting to move a player in a UTIL slot to a different UTIL slot.
@@ -174,7 +178,7 @@ function performMove(currentRosterState, newMapping, whenFinished) {
 
 function performMoves(currentRosterState, newRosterState, autoSave) {
     const whenFinished = autoSave ? saveChanges : () => {};
-    performMove(currentRosterState, Array.from(newRosterState.mapping), whenFinished);
+    performMove(currentRosterState, Array.from(newRosterState.starterMapping), whenFinished);
 }
 
 function createAutoSetupButton() {
@@ -229,8 +233,8 @@ function performAutoSetup() {
     if (rosterState.isEquivalentTo(newRosterState)) {
         console.debug("No moves are necessary");
     } else {
-        console.debug("Current active players", rosterState.mapping);
-        console.debug("Suggested new active players", newRosterState.mapping);
+        console.debug("Current active players", rosterState.starterMapping);
+        console.debug("Suggested new active players", newRosterState.starterMapping);
         performMoves(rosterState, newRosterState, currentSettings.autoSave);
     }
 }
