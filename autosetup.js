@@ -1,21 +1,15 @@
 OPERATION_TIMEOUT_MS = 10;
 
-function getRosterRows(table) {
-    const starterRows = [];
-    const benchRows = [];
-    let isBench = false;
-    for (const row of table.rows) {
-        if (row.classList.contains("tableHead") && row.childNodes[0].textContent === "BENCH") {
-            isBench = true;
-        } else if (row.classList.contains("pncPlayerRow")) {
-            if (isBench) {
-                benchRows.push(row);
-            } else {
-                starterRows.push(row);
-            }
-        }
-    }
-    return { starterRows, benchRows };
+function getRosterRows(container) {
+    const tableBodies = container.querySelectorAll("tbody.Table2__tbody");
+    const starterTable = tableBodies[0];
+    const benchTable = tableBodies[2];
+    const starterRows = starterTable.getElementsByTagName("tr");
+    const benchRows = benchTable.getElementsByTagName("tr");
+    return {
+        starterRows: Array.from(starterRows).slice(0, starterRows.length - 1), // There's a sum row at the bottom of the starter table.
+        benchRows: Array.from(benchRows),
+    };
 }
 
 function parseSlotType(text) {
@@ -33,19 +27,26 @@ function parseSlotType(text) {
 }
 
 function createActivePlayerSlot(row, slotId) {
-    const slotCell = row.getElementsByClassName("playerSlot")[0];
+    const slotCell = row.getElementsByTagName("td")[0];
     const slotType = parseSlotType(slotCell.textContent);
     return new ActivePlayerSlot(slotId, slotType);
 }
 
+function parsePlayerId(playerInfoCell) {
+    // The only place we can reliably find the player ID is in the image.
+    // For players that don't have headshots (typically rookies) there's no way to get the ID here.
+    const image = playerInfoCell.getElementsByTagName("img")[0];
+    const match = /.*\/(\d+)\.png.*/.exec(image.src);
+    return match ? Number.parseInt(match[1]) : null;
+}
+
 function parsePositions(playerInfoCell) {
-    const text = playerInfoCell.childNodes[1].textContent;
-    const match = /,\s*\w+\s+([\w,\s]+)/.exec(text)[1];
-    return match.split(", ").map(s => s.trim());
+    const span = playerInfoCell.getElementsByClassName("playerinfo__playerpos")[0];
+    return span.textContent.split(", ").map(s => s.trim());
 }
 
 function parseHealth(playerInfoCell) {
-    const healthSpan = playerInfoCell.getElementsByTagName("span")[0];
+    const healthSpan = playerInfoCell.getElementsByClassName("playerinfo__injurystatus")[0];
     const healthString = healthSpan ? healthSpan.textContent : "";
     switch (healthString) {
         case "DTD": return PLAYER_HEALTH_DAYTODAY;
@@ -56,22 +57,23 @@ function parseHealth(playerInfoCell) {
 }
 
 function parseOpponent(row) {
-    const matchupCell = row.getElementsByTagName("td")[4];
+    const matchupCell = row.getElementsByTagName("td")[3];
     const matchupDiv = matchupCell.getElementsByTagName("div")[0];
     if (!matchupDiv) {
         return null;
     }
     const opponentTeamLink = matchupDiv.getElementsByTagName("a")[0];
-    return opponentTeamLink.textContent;
+    return opponentTeamLink ? opponentTeamLink.textContent : null;
 }
 
 function createPlayer(row) {
-    const playerInfoCell = row.getElementsByClassName("playertablePlayerName")[0];
-    if (!playerInfoCell) {
+    const playerInfoCell = row.getElementsByTagName("td")[1];
+    const playerLink = playerInfoCell.getElementsByTagName("a")[0];
+    if (!playerLink) {
+        // This should mean that the slot is currently empty.
         return null;
     }
-    const playerLink = playerInfoCell.getElementsByTagName("a")[0];
-    const playerId = playerLink.getAttribute("playerid");
+    const playerId = parsePlayerId(playerInfoCell);
     const name = playerLink.textContent;
     const positions = parsePositions(playerInfoCell);
     const health = parseHealth(playerInfoCell);
@@ -80,8 +82,8 @@ function createPlayer(row) {
 }
 
 function getRosterState() {
-    const table = document.getElementById("playertable_0");
-    const { starterRows, benchRows } = getRosterRows(table);
+    const mainTable = document.querySelector(".container > .team-page > div:nth-child(3)");
+    const { starterRows, benchRows } = getRosterRows(mainTable);
     const slots = [];
     const players = [];
     const mapping = new Map();
