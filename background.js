@@ -4,7 +4,7 @@ chrome.runtime.onInstalled.addListener(function() {
             {
                 conditions: [
                     new chrome.declarativeContent.PageStateMatcher({
-                        pageUrl: { hostEquals: "games.espn.com", pathPrefix: "/fba/clubhouse" },
+                        pageUrl: { hostEquals: "fantasy.espn.com", pathPrefix: "/basketball/team" },
                     })
                 ],
                 actions: [ new chrome.declarativeContent.ShowPageAction() ]

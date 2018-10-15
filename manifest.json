@@ -7,7 +7,7 @@
         "tabs",
         "declarativeContent",
         "storage",
-        "*://games.espn.com/fba/clubhouse*"
+        "*://fantasy.espn.com/basketball/team*"
     ],
     "icons": {
         "32": "assets/icon-32.png",
@@ -36,7 +36,7 @@
     "content_scripts": [
         {
             "matches": [
-                "*://*.games.espn.com/fba/clubhouse*"
+                "*://*.fantasy.espn.com/basketball/team*"
             ],
             "js": [
                 "data.js",
