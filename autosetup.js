@@ -132,7 +132,7 @@ function getRosterState() {
         if (player !== null) {
             players.push(player);
         }
-        if (player.isInjuredReserve) {
+        if (player !== null && player.isInjuredReserve) {
             injuredReserves.push(player);
         } else {
             benchMapping.set(benchSlotId++, player);
