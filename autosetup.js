@@ -1,21 +1,36 @@
 OPERATION_TIMEOUT_MS = 10;
 
-function getRosterRows(table) {
+function getRosterRows() {
+    const container = document.querySelector(".container > .team-page > div:nth-child(3)");
+    const tableBody = container.querySelector("tbody.Table2__tbody");
     const starterRows = [];
     const benchRows = [];
     let isBench = false;
-    for (const row of table.rows) {
-        if (row.classList.contains("tableHead") && row.childNodes[0].textContent === "BENCH") {
+    for (const row of tableBody.getElementsByTagName("tr")) {
+        if (isTotalsRow(row)) {
             isBench = true;
-        } else if (row.classList.contains("pncPlayerRow")) {
-            if (isBench) {
-                benchRows.push(row);
-            } else {
-                starterRows.push(row);
-            }
+            continue;
+        }
+        if (isBench) {
+            benchRows.push(row);
+        } else {
+            starterRows.push(row);
         }
     }
     return { starterRows, benchRows };
+}
+
+function isTotalsRow(row) {
+    const cells = row.getElementsByTagName("td");
+    const fifthCell = cells[4];
+    if (!fifthCell) {
+        return false;
+    }
+    const innerDiv = fifthCell.querySelector("div");
+    if (!innerDiv) {
+        return false;
+    }
+    return innerDiv.textContent === "TOTALS";
 }
 
 function parseSlotType(text) {
@@ -33,19 +48,26 @@ function parseSlotType(text) {
 }
 
 function createActivePlayerSlot(row, slotId) {
-    const slotCell = row.getElementsByClassName("playerSlot")[0];
+    const slotCell = row.getElementsByTagName("td")[0];
     const slotType = parseSlotType(slotCell.textContent);
     return new ActivePlayerSlot(slotId, slotType);
 }
 
+function parsePlayerId(playerInfoCell) {
+    // The only place we can reliably find the player ID is in the image.
+    // For players that don't have headshots (typically rookies) there's no way to get the ID here.
+    const image = playerInfoCell.getElementsByTagName("img")[0];
+    const match = /.*\/(\d+)\.png.*/.exec(image.src);
+    return match ? Number.parseInt(match[1]) : null;
+}
+
 function parsePositions(playerInfoCell) {
-    const text = playerInfoCell.childNodes[1].textContent;
-    const match = /,\s*\w+\s+([\w,\s]+)/.exec(text)[1];
-    return match.split(", ").map(s => s.trim());
+    const span = playerInfoCell.getElementsByClassName("playerinfo__playerpos")[0];
+    return span.textContent.split(", ").map(s => s.trim());
 }
 
 function parseHealth(playerInfoCell) {
-    const healthSpan = playerInfoCell.getElementsByTagName("span")[0];
+    const healthSpan = playerInfoCell.getElementsByClassName("playerinfo__injurystatus")[0];
     const healthString = healthSpan ? healthSpan.textContent : "";
     switch (healthString) {
         case "DTD": return PLAYER_HEALTH_DAYTODAY;
@@ -56,35 +78,42 @@ function parseHealth(playerInfoCell) {
 }
 
 function parseOpponent(row) {
-    const matchupCell = row.getElementsByTagName("td")[4];
+    const matchupCell = row.getElementsByTagName("td")[3];
     const matchupDiv = matchupCell.getElementsByTagName("div")[0];
     if (!matchupDiv) {
         return null;
     }
     const opponentTeamLink = matchupDiv.getElementsByTagName("a")[0];
-    return opponentTeamLink.textContent;
+    return opponentTeamLink ? opponentTeamLink.textContent : null;
+}
+
+function parseInuredReserve(row) {
+    const positionCell = row.getElementsByTagName("td")[0];
+    const positionDiv = positionCell.getElementsByTagName("div")[0];
+    return positionDiv && positionDiv.textContent === "IR";
 }
 
 function createPlayer(row) {
-    const playerInfoCell = row.getElementsByClassName("playertablePlayerName")[0];
-    if (!playerInfoCell) {
+    const playerInfoCell = row.getElementsByTagName("td")[1];
+    const playerLink = playerInfoCell.getElementsByTagName("a")[0];
+    if (!playerLink) {
+        // This should mean that the slot is currently empty.
         return null;
     }
-    const playerLink = playerInfoCell.getElementsByTagName("a")[0];
-    const playerId = playerLink.getAttribute("playerid");
     const name = playerLink.textContent;
+    const playerId = parsePlayerId(playerInfoCell) || name;
     const positions = parsePositions(playerInfoCell);
     const health = parseHealth(playerInfoCell);
     const opponent = parseOpponent(row);
-    return new Player(playerId, name, positions, health, opponent);
+    const isInjuredReserve = parseInuredReserve(row);
+    return new Player(playerId, name, positions, health, opponent, isInjuredReserve);
 }
 
 function getRosterState() {
-    const table = document.getElementById("playertable_0");
-    const { starterRows, benchRows } = getRosterRows(table);
+    const { starterRows, benchRows } = getRosterRows();
     const slots = [];
     const players = [];
-    const mapping = new Map();
+    const starterMapping = new Map();
     let slotId = 0;
     for (const row of starterRows) {
         const slot = createActivePlayerSlot(row, slotId++);
@@ -93,41 +122,42 @@ function getRosterState() {
         if (player !== null) {
             players.push(player);
         }
-        mapping.set(slot.slotId, player);
+        starterMapping.set(slot.slotId, player);
     }
+    const benchMapping = new Map();
+    const injuredReserves = [];
+    let benchSlotId = 0;
     for (const row of benchRows) {
         const player = createPlayer(row);
         if (player !== null) {
             players.push(player);
         }
+        if (player.isInjuredReserve) {
+            injuredReserves.push(player);
+        } else {
+            benchMapping.set(benchSlotId++, player);
+        }
     }
-    return new RosterState(slots, players, mapping);
+    return new RosterState(slots, players, starterMapping, benchMapping, injuredReserves);
 }
 
-function getMoveButton(player) {
-    return document.getElementById(`pncButtonMove_${player.playerId}`);
+function getActionButton(row) {
+    return row.querySelector(".move-action-btn") || null;
+}
+
+function getMoveButton(player, rosterState) {
+    const playerSlot = rosterState.getCurrentPlayerSlot(player);
+    const { starterRows, benchRows } = getRosterRows();
+    const rows = playerSlot.starter ? starterRows : benchRows;
+    return getActionButton(rows[playerSlot.idx]);
 }
 
 function getLockedButton(player) {
     return document.getElementById(`pncButtonLocked_${player.playerId}`);
 }
 
-function getSelectedMoveButton(player) {
-    return document.getElementById(`pncButtonMoveSelected_${player.playerId}`);
-}
-
-function getHereButton(slotId) {
-    const slotRow = document.getElementsByClassName("pncPlayerRow")[slotId];
-    const hereButtons = Array.from(slotRow.getElementsByClassName("pncButtonHere"));
-    // Sometimes invisible buttons are left behind when the slot has been touched previously.
-    const visibleHereButtons = hereButtons.filter(e => e.style.display !== "none");
-    // If we can't find any buttons it could be because we're attempting to move a player from a slot of the same type.
-    // The ESPN page doesn't allow this.
-    return visibleHereButtons.length > 0 ? visibleHereButtons[0] : null;
-}
-
-function getSubmitButton() {
-    return document.getElementById("pncSaveRoster0");
+function getHereButton(slotId, rosterState) {
+    return getActionButton(getRosterRows().starterRows[slotId]);
 }
 
 function performMove(currentRosterState, newMapping, whenFinished) {
@@ -136,12 +166,12 @@ function performMove(currentRosterState, newMapping, whenFinished) {
         return;
     }
     const [[slotId, player], ...remainingMapping] = newMapping;
-    const currentPlayer = currentRosterState.mapping.get(slotId);
+    const currentPlayer = currentRosterState.starterMapping.get(slotId);
     if (player !== null && (currentPlayer === null || currentPlayer.playerId !== player.playerId)) {
         console.debug("Moving player to slot", player, slotId);
         // Wait for a short while between sending clicks to the Move button and to the Here button.
         // Without this we get intermittent errors from the click handlers on the ESPN page.
-        const moveButton = getMoveButton(player);
+        const moveButton = getMoveButton(player, currentRosterState);
         if (moveButton === null) {
             const lockedButton = getLockedButton(player);
             if (lockedButton === null) {
@@ -154,12 +184,12 @@ function performMove(currentRosterState, newMapping, whenFinished) {
             moveButton.click();
         }
         setTimeout(() => {
-            const hereButton = getHereButton(slotId);
+            const hereButton = getHereButton(slotId, currentRosterState);
             if (hereButton === null) {
                 // If we can't find a Here button it's because the move isn't possible for some reason.
                 // The most likely reason for this is that we're attempting to move a player in a UTIL slot to a different UTIL slot.
-                // We need to "roll back" the move by clicking the Move button again, which is unfortunately a separate HTML element.
-                getSelectedMoveButton(player).click();
+                // We need to "roll back" the move by clicking the Move button again.
+                moveButton.click();
             } else {
                 hereButton.click();
             }
@@ -171,47 +201,39 @@ function performMove(currentRosterState, newMapping, whenFinished) {
 }
 
 function performMoves(currentRosterState, newRosterState, autoSave) {
-    const whenFinished = autoSave ? saveChanges : () => {};
-    performMove(currentRosterState, Array.from(newRosterState.mapping), whenFinished);
+    const whenFinished = () => {};
+    performMove(currentRosterState, Array.from(newRosterState.starterMapping), whenFinished);
 }
 
 function createAutoSetupButton() {
-    const autoSetupButton = document.createElement("div");
-    autoSetupButton.id = "pncTopAutoButton";
-    autoSetupButton.className = "pncTopButton pncTopButtonText";
-    autoSetupButton.style = "margin-left: 6px";
-    autoSetupButton.textContent = "Auto";
+    const autoSetupButton = document.createElement("a");
+    autoSetupButton.className = "btn btn--custom ml4 action-buttons btn--alt";
     autoSetupButton.onclick = performAutoSetup;
+    const innerSpan = document.createElement("span");
+    innerSpan.textContent = "Auto";
+    autoSetupButton.appendChild(innerSpan);
     return autoSetupButton;
 }
 
-function addAutoSetupButton() {
-    const resetButton = document.getElementById("pncTopResetButton");
-    if (!resetButton) {
-        return;
-    }
-    const autoSetupButton = createAutoSetupButton();
-    resetButton.parentNode.insertBefore(autoSetupButton, resetButton);
-    const submitCell = document.getElementsByClassName("playerTableSubmitCell")[0];
-    submitCell.style.width = `${submitCell.clientWidth + autoSetupButton.clientWidth + 6}px`;
+function addAutoSetupButton(myTeamButtonsDiv) {
+    myTeamButtonsDiv.appendChild(createAutoSetupButton());
 }
 
-addAutoSetupButton();
-
-const containerDiv = document.getElementById("playerTableContainerDiv");
 const observer = new MutationObserver(mutations => {
-    const mutation = mutations.filter(m => m.target === containerDiv)[0];
-    if (mutation && Array.from(mutation.addedNodes).some(n => n.id === "playerTableFramedForm")) {
-        addAutoSetupButton();
+    for (const mutation of mutations) {
+        const contentNavDiv = Array.from(mutation.addedNodes).filter(n => n.classList && n.classList.contains("content-nav"))[0];
+        if (!contentNavDiv) {
+            continue;
+        }
+        const myTeamButtonsDiv = contentNavDiv.getElementsByClassName("myTeamButtons")[0];
+        if (!myTeamButtonsDiv) {
+            console.warn("Unable to find expected div with class name 'myTeamButtons'");
+            break;
+        }
+        addAutoSetupButton(myTeamButtonsDiv);
     }
 });
-observer.observe(containerDiv, { childList: true, subtree: true });
-
-function saveChanges() {
-    console.debug("Saving changes");
-    const button = getSubmitButton();
-    button.click();
-}
+observer.observe(document.body, { childList: true, subtree: true });
 
 const currentSettings = {
     autoSave: true,
@@ -229,8 +251,8 @@ function performAutoSetup() {
     if (rosterState.isEquivalentTo(newRosterState)) {
         console.debug("No moves are necessary");
     } else {
-        console.debug("Current active players", rosterState.mapping);
-        console.debug("Suggested new active players", newRosterState.mapping);
+        console.debug("Current active players", rosterState.starterMapping);
+        console.debug("Suggested new active players", newRosterState.starterMapping);
         performMoves(rosterState, newRosterState, currentSettings.autoSave);
     }
 }

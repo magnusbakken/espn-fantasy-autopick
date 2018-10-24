@@ -12,7 +12,7 @@ function restoreSettings(settings) {
 function saveSettings(settings) {
     console.debug("Saving settings", settings);
     chrome.storage.sync.set(settings, function() {
-        chrome.tabs.query({ url: "*://*.games.espn.com/fba/clubhouse*" }, function (tabs) {
+        chrome.tabs.query({ url: "*://*.fantasy.espn.com/basketball/team*" }, function (tabs) {
             const message = {
                 commandId: "settings-changed",
                 settings: settings,
