@@ -25,12 +25,13 @@ PLAYER_HEALTH_SUSPENDED = "SSPD";
 PLAYER_HEALTH_LEVELS = [PLAYER_HEALTH_HEALTHY, PLAYER_HEALTH_DAYTODAY, PLAYER_HEALTH_OUT, PLAYER_HEALTH_SUSPENDED];
 
 class Player {
-    constructor(playerId, name, positions, health, opponent) {
+    constructor(playerId, name, positions, health, opponent, isInjuredReserve) {
         this.playerId = playerId;
         this.name = name;
         this.positions = positions;
         this.health = health;
         this.opponent = opponent;
+        this.isInjuredReserve = isInjuredReserve;
     }
 
     get isPlaying() {
@@ -43,25 +44,26 @@ class Player {
 }
 
 class RosterState {
-    constructor(slots, players, starterMapping, benchMapping) {
+    constructor(slots, players, starterMapping, benchMapping, injuredReserves) {
         this.slots = slots;
         this.players = players;
         this.starterMapping = starterMapping;
         this.benchMapping = benchMapping;
+        this.injuredReserves = injuredReserves;
     }
 
     get hasRoomForEveryone() {
-        return this.players.filter(p => p.isPlaying).length <= this.slots.length;
+        return this.players.filter(p => p.isPlaying || p.isInjuredReserve).length <= this.slots.length;
     }
 
     getCurrentPlayerSlot(player) {
         for (const [key, value] of this.starterMapping) {
-            if (value.playerId === player.playerId) {
+            if (value && value.playerId === player.playerId) {
                 return { starter: true, idx: key };
             }
         }
         for (const [key, value] of this.benchMapping) {
-            if (value.playerId === player.playerId) {
+            if (value && value.playerId === player.playerId) {
                 return { starter: false, idx: key };
             }
         }
@@ -117,7 +119,7 @@ function positionMatchesSlot(position, slot) {
 }
 
 function playerMatchesSlot(player, slot) {
-    return player.positions.some(position => positionMatchesSlot(position, slot));
+    return !player.isInjuredReserve && player.positions.some(position => positionMatchesSlot(position, slot));
 }
 
 function getHealthiestPlayers(players) {

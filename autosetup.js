@@ -2,15 +2,35 @@ OPERATION_TIMEOUT_MS = 10;
 
 function getRosterRows() {
     const container = document.querySelector(".container > .team-page > div:nth-child(3)");
-    const tableBodies = container.querySelectorAll("tbody.Table2__tbody");
-    const starterTable = tableBodies[0];
-    const benchTable = tableBodies[2];
-    const starterRows = starterTable.getElementsByTagName("tr");
-    const benchRows = benchTable.getElementsByTagName("tr");
-    return {
-        starterRows: Array.from(starterRows).slice(0, starterRows.length - 1), // There's a sum row at the bottom of the starter table.
-        benchRows: Array.from(benchRows),
-    };
+    const tableBody = container.querySelector("tbody.Table2__tbody");
+    const starterRows = [];
+    const benchRows = [];
+    let isBench = false;
+    for (const row of tableBody.getElementsByTagName("tr")) {
+        if (isTotalsRow(row)) {
+            isBench = true;
+            continue;
+        }
+        if (isBench) {
+            benchRows.push(row);
+        } else {
+            starterRows.push(row);
+        }
+    }
+    return { starterRows, benchRows };
+}
+
+function isTotalsRow(row) {
+    const cells = row.getElementsByTagName("td");
+    const fifthCell = cells[4];
+    if (!fifthCell) {
+        return false;
+    }
+    const innerDiv = fifthCell.querySelector("div");
+    if (!innerDiv) {
+        return false;
+    }
+    return innerDiv.textContent === "TOTALS";
 }
 
 function parseSlotType(text) {
@@ -67,6 +87,12 @@ function parseOpponent(row) {
     return opponentTeamLink ? opponentTeamLink.textContent : null;
 }
 
+function parseInuredReserve(row) {
+    const positionCell = row.getElementsByTagName("td")[0];
+    const positionDiv = positionCell.getElementsByTagName("div")[0];
+    return positionDiv && positionDiv.textContent === "IR";
+}
+
 function createPlayer(row) {
     const playerInfoCell = row.getElementsByTagName("td")[1];
     const playerLink = playerInfoCell.getElementsByTagName("a")[0];
@@ -79,7 +105,8 @@ function createPlayer(row) {
     const positions = parsePositions(playerInfoCell);
     const health = parseHealth(playerInfoCell);
     const opponent = parseOpponent(row);
-    return new Player(playerId, name, positions, health, opponent);
+    const isInjuredReserve = parseInuredReserve(row);
+    return new Player(playerId, name, positions, health, opponent, isInjuredReserve);
 }
 
 function getRosterState() {
@@ -98,15 +125,20 @@ function getRosterState() {
         starterMapping.set(slot.slotId, player);
     }
     const benchMapping = new Map();
+    const injuredReserves = [];
     let benchSlotId = 0;
     for (const row of benchRows) {
         const player = createPlayer(row);
         if (player !== null) {
             players.push(player);
         }
-        benchMapping.set(benchSlotId++, player);
+        if (player.isInjuredReserve) {
+            injuredReserves.push(player);
+        } else {
+            benchMapping.set(benchSlotId++, player);
+        }
     }
-    return new RosterState(slots, players, starterMapping, benchMapping);
+    return new RosterState(slots, players, starterMapping, benchMapping, injuredReserves);
 }
 
 function getActionButton(row) {
@@ -116,7 +148,7 @@ function getActionButton(row) {
 function getMoveButton(player, rosterState) {
     const playerSlot = rosterState.getCurrentPlayerSlot(player);
     const { starterRows, benchRows } = getRosterRows();
-    const rows = playerSlot.isStarter ? starterRows : benchRows;
+    const rows = playerSlot.starter ? starterRows : benchRows;
     return getActionButton(rows[playerSlot.idx]);
 }
 
@@ -124,16 +156,8 @@ function getLockedButton(player) {
     return document.getElementById(`pncButtonLocked_${player.playerId}`);
 }
 
-function getSelectedMoveButton(player) {
-    return document.getElementById(`pncButtonMoveSelected_${player.playerId}`);
-}
-
 function getHereButton(slotId, rosterState) {
     return getActionButton(getRosterRows().starterRows[slotId]);
-}
-
-function getSubmitButton() {
-    return document.getElementById("pncSaveRoster0");
 }
 
 function performMove(currentRosterState, newMapping, whenFinished) {
@@ -164,8 +188,8 @@ function performMove(currentRosterState, newMapping, whenFinished) {
             if (hereButton === null) {
                 // If we can't find a Here button it's because the move isn't possible for some reason.
                 // The most likely reason for this is that we're attempting to move a player in a UTIL slot to a different UTIL slot.
-                // We need to "roll back" the move by clicking the Move button again, which is unfortunately a separate HTML element.
-                getSelectedMoveButton(player).click();
+                // We need to "roll back" the move by clicking the Move button again.
+                moveButton.click();
             } else {
                 hereButton.click();
             }
@@ -177,7 +201,7 @@ function performMove(currentRosterState, newMapping, whenFinished) {
 }
 
 function performMoves(currentRosterState, newRosterState, autoSave) {
-    const whenFinished = autoSave ? saveChanges : () => {};
+    const whenFinished = () => {};
     performMove(currentRosterState, Array.from(newRosterState.starterMapping), whenFinished);
 }
 
@@ -210,12 +234,6 @@ const observer = new MutationObserver(mutations => {
     }
 });
 observer.observe(document.body, { childList: true, subtree: true });
-
-function saveChanges() {
-    console.debug("Saving changes");
-    const button = getSubmitButton();
-    button.click();
-}
 
 const currentSettings = {
     autoSave: true,
