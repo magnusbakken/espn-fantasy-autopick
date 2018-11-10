@@ -216,8 +216,16 @@ function createAutoSetupButton() {
     return autoSetupButton;
 }
 
+function fixTransactionCounterTooltip() {
+    const tooltip = document.querySelector('.team-acquisitions-counter .counter-tooltip .tooltip-text');
+    if (tooltip) {
+        tooltip.innerText = 'Transactions';
+    }
+}
+
 function addAutoSetupButton(myTeamButtonsDiv) {
     myTeamButtonsDiv.appendChild(createAutoSetupButton());
+    fixTransactionCounterTooltip();
 }
 
 const observer = new MutationObserver(mutations => {
