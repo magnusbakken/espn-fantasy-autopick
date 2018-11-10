@@ -145,7 +145,8 @@ function getActionButton(row) {
     return row.querySelector(".move-action-btn") || null;
 }
 
-function getMoveButton(player, rosterState) {
+function getMoveButton(player) {
+    const rosterState = getRosterState();
     const playerSlot = rosterState.getCurrentPlayerSlot(player);
     const { starterRows, benchRows } = getRosterRows();
     const rows = playerSlot.starter ? starterRows : benchRows;
@@ -156,7 +157,7 @@ function getLockedButton(player) {
     return document.getElementById(`pncButtonLocked_${player.playerId}`);
 }
 
-function getHereButton(slotId, rosterState) {
+function getHereButton(slotId) {
     return getActionButton(getRosterRows().starterRows[slotId]);
 }
 
@@ -171,7 +172,7 @@ function performMove(currentRosterState, newMapping, whenFinished) {
         console.debug("Moving player to slot", player, slotId);
         // Wait for a short while between sending clicks to the Move button and to the Here button.
         // Without this we get intermittent errors from the click handlers on the ESPN page.
-        const moveButton = getMoveButton(player, currentRosterState);
+        const moveButton = getMoveButton(player);
         if (moveButton === null) {
             const lockedButton = getLockedButton(player);
             if (lockedButton === null) {
@@ -184,7 +185,7 @@ function performMove(currentRosterState, newMapping, whenFinished) {
             moveButton.click();
         }
         setTimeout(() => {
-            const hereButton = getHereButton(slotId, currentRosterState);
+            const hereButton = getHereButton(slotId);
             if (hereButton === null) {
                 // If we can't find a Here button it's because the move isn't possible for some reason.
                 // The most likely reason for this is that we're attempting to move a player in a UTIL slot to a different UTIL slot.
