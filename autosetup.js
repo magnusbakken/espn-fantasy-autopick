@@ -1,36 +1,20 @@
-OPERATION_TIMEOUT_MS = 10;
+OPERATION_TIMEOUT_MS = 1000;
 
 function getRosterRows() {
     const container = document.querySelector(".container > .team-page > div:nth-child(3)");
     const tableBody = container.querySelector("tbody.Table2__tbody");
     const starterRows = [];
     const benchRows = [];
-    let isBench = false;
     for (const row of tableBody.getElementsByTagName("tr")) {
-        if (isTotalsRow(row)) {
-            isBench = true;
-            continue;
-        }
-        if (isBench) {
+        const slotCell = row.getElementsByTagName("td")[0];
+        const slotType = parseSlotType(slotCell.textContent);
+        if (slotType === SLOT_TYPE_BENCH || slotType === SLOT_TYPE_IR) {
             benchRows.push(row);
         } else {
             starterRows.push(row);
         }
     }
     return { starterRows, benchRows };
-}
-
-function isTotalsRow(row) {
-    const cells = row.getElementsByTagName("td");
-    const fifthCell = cells[4];
-    if (!fifthCell) {
-        return false;
-    }
-    const innerDiv = fifthCell.querySelector("div");
-    if (!innerDiv) {
-        return false;
-    }
-    return innerDiv.textContent === "TOTALS";
 }
 
 function parseSlotType(text) {
@@ -43,6 +27,8 @@ function parseSlotType(text) {
         case "G": return SLOT_TYPE_GUARD;
         case "F": return SLOT_TYPE_FORWARD;
         case "UTIL": return SLOT_TYPE_UTIL;
+        case "Bench": return SLOT_TYPE_BENCH;
+        case "IR": return SLOT_TYPE_IR;
         default: throw new Error("Unknown slot type: " + text);
     }
 }
@@ -87,7 +73,7 @@ function parseOpponent(row) {
     return opponentTeamLink ? opponentTeamLink.textContent : null;
 }
 
-function parseInuredReserve(row) {
+function parseInjuredReserve(row) {
     const positionCell = row.getElementsByTagName("td")[0];
     const positionDiv = positionCell.getElementsByTagName("div")[0];
     return positionDiv && positionDiv.textContent === "IR";
@@ -105,7 +91,7 @@ function createPlayer(row) {
     const positions = parsePositions(playerInfoCell);
     const health = parseHealth(playerInfoCell);
     const opponent = parseOpponent(row);
-    const isInjuredReserve = parseInuredReserve(row);
+    const isInjuredReserve = parseInjuredReserve(row);
     return new Player(playerId, name, positions, health, opponent, isInjuredReserve);
 }
 
