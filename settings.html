@@ -32,9 +32,10 @@
                     <h2>General settings</h2>
                     <hr>
                     <form>
-                        <div class="form-check">
-                            <input class="form-check-input setting" type="checkbox" value="" id="autoSaveCheckbox">
-                            <label class="form-check-label" for="autoSaveCheckbox">Automatically save changes after performing automatic setup.</label>
+                        <div class="form-group">
+                            <label for="saveDelayInput">Delay between automatic moves (ms)</label>
+                            <input class="form-field-input setting" type="number" value="" class="setting" id="saveDelayInput">
+                            <small class="form-text text-muted">If this delay is too short the save operation may fail.</small>
                         </div>
                     </form>
                     <br>

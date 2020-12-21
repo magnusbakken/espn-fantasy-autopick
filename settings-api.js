@@ -1,12 +1,12 @@
 DEFAULT_OPTIONS = {
-    autoSave: true
+    saveDelay: 1000
 };
 
 let originalSettings = DEFAULT_OPTIONS;
 
 function restoreSettings(settings) {
     console.debug("Restoring settings", settings);
-    document.getElementById("autoSaveCheckbox").checked = settings.autoSave;
+    document.getElementById("saveDelayInput").value = settings.saveDelay;
 }
 
 function saveSettings(settings) {

@@ -1,6 +1,6 @@
 function currentSettings() {
     return {
-        autoSave: document.getElementById("autoSaveCheckbox").checked,
+        saveDelay: document.getElementById("saveDelayInput").value,
     };
 }
 
@@ -48,5 +48,6 @@ document.addEventListener("DOMContentLoaded", () => {
         originalSettings = settings;
     });
     on(".setting", "change", settingsUpdated);
+    on(".setting", "input", settingsUpdated);
     on("#saveButton", "click", performSave);
 });

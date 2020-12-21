@@ -35,9 +35,10 @@
                     </div>
                     <div class="card-body">
                         <form>
-                            <div class="form-check" title="When this is enabled, automatic team changes are immediately submitted.">
-                                <input class="form-check-input" type="checkbox" value="" id="autoSaveCheckbox">
-                                <label class="form-check-label" for="autoSaveCheckbox">Save automatically</label>
+                            <div class="form-group">
+                                <label for="saveDelayInput">Delay between automatic moves (ms)</label>
+                                <input class="form-field-input setting" type="number" value="" id="saveDelayInput">
+                                <small class="form-text text-muted">If this delay is too short the save operation may fail.</small>
                             </div>
                         </form>
                         <p class="card-text text-right">

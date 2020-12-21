@@ -17,10 +17,10 @@ function viewOnGitHub() {
     });
 }
 
-function toggleAutoSave() {
-    const checkbox = document.getElementById("autoSaveCheckbox");
+function changeSaveDelay() {
+    const saveDelayInput = document.getElementById("saveDelayInput");
     withSettings(settings => {
-        settings.autoSave = checkbox.checked;
+        settings.saveDelay = saveDelayInput.value;
         saveSettings(settings);
     });
 }
@@ -41,6 +41,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     on("#setupCurrentPageButton", "click", performAutoSetup);
     on("#viewOnGitHubButton", "click", viewOnGitHub);
-    on("#autoSaveCheckbox", "change", toggleAutoSave);
+    on("#saveDelayInput", "input", changeSaveDelay);
     on("#showSettingsPageLink", "click", showSettingsPage);
 });

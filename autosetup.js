@@ -1,4 +1,4 @@
-OPERATION_TIMEOUT_MS = 1000;
+DEFAULT_OPERATION_TIMEOUT_MS = 1000;
 
 function getRosterRows() {
     const tableBody = document.querySelector(".players-table tbody.Table__TBODY");
@@ -146,13 +146,14 @@ function getHereButton(slotId) {
     return getActionButton(getRosterRows().starterRows[slotId]);
 }
 
-function performMove(currentRosterState, newMapping, whenFinished) {
+function performMove(currentRosterState, newMapping, saveDelay, whenFinished) {
     if (newMapping.length === 0) {
         whenFinished();
         return;
     }
     const [[slotId, player], ...remainingMapping] = newMapping;
     const currentPlayer = currentRosterState.starterMapping.get(slotId);
+    const delay = saveDelay || DEFAULT_OPERATION_TIMEOUT_MS;
     if (player !== null && (currentPlayer === null || currentPlayer.playerId !== player.playerId)) {
         console.debug("Moving player to slot", player, slotId);
         // Wait for a short while between sending clicks to the Move button and to the Here button.
@@ -179,16 +180,16 @@ function performMove(currentRosterState, newMapping, whenFinished) {
             } else {
                 hereButton.click();
             }
-            setTimeout(() => performMove(currentRosterState, remainingMapping, whenFinished), OPERATION_TIMEOUT_MS);
-        }, OPERATION_TIMEOUT_MS);
+            setTimeout(() => performMove(currentRosterState, remainingMapping, delay, whenFinished), delay);
+        }, delay);
     } else {
-        performMove(currentRosterState, remainingMapping, whenFinished);
+        performMove(currentRosterState, remainingMapping, delay, whenFinished);
     }
 }
 
-function performMoves(currentRosterState, newRosterState, autoSave) {
+function performMoves(currentRosterState, newRosterState, saveDelay) {
     const whenFinished = () => {};
-    performMove(currentRosterState, Array.from(newRosterState.starterMapping), whenFinished);
+    performMove(currentRosterState, Array.from(newRosterState.starterMapping), saveDelay, whenFinished);
 }
 
 function createAutoSetupButton() {
@@ -230,12 +231,12 @@ const observer = new MutationObserver(mutations => {
 observer.observe(document.body, { childList: true, subtree: true });
 
 const currentSettings = {
-    autoSave: true,
+    saveDelay: DEFAULT_OPERATION_TIMEOUT_MS
 };
 
 function updateSettings(settings) {
     console.debug("Updating extension settings", settings);
-    currentSettings.autoSave = settings.autoSave;
+    currentSettings.saveDelay = settings.saveDelay;
 }
 
 function performAutoSetup() {
@@ -247,15 +248,23 @@ function performAutoSetup() {
     } else {
         console.debug("Current active players", rosterState.starterMapping);
         console.debug("Suggested new active players", newRosterState.starterMapping);
-        performMoves(rosterState, newRosterState, currentSettings.autoSave);
+        performMoves(rosterState, newRosterState, currentSettings.saveDelay);
     }
 }
 
 chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
     console.debug("Received message", message);
     if (message.commandId === "perform-auto-setup") {
-        performAutoSetup(currentSettings.autoSave);
+        performAutoSetup(currentSettings.saveDelay);
     } else if (message.commandId === "settings-changed") {
         updateSettings(message.settings);
     }
 });
+
+chrome.storage.sync.get(currentSettings, function(settings) {
+    console.debug("Loading extension settings");
+    for (const key in settings) {
+        console.debug(key + " = " + settings[key]);
+        currentSettings[key] = settings[key];
+    }
+})
