@@ -1,8 +1,7 @@
 OPERATION_TIMEOUT_MS = 1000;
 
 function getRosterRows() {
-    const container = document.querySelector(".container > .team-page > div:nth-child(3)");
-    const tableBody = container.querySelector("tbody.Table2__tbody");
+    const tableBody = document.querySelector(".players-table tbody.Table__TBODY");
     const starterRows = [];
     const benchRows = [];
     for (const row of tableBody.getElementsByTagName("tr")) {
@@ -194,7 +193,7 @@ function performMoves(currentRosterState, newRosterState, autoSave) {
 
 function createAutoSetupButton() {
     const autoSetupButton = document.createElement("a");
-    autoSetupButton.className = "btn btn--custom ml4 action-buttons btn--alt";
+    autoSetupButton.className = "AnchorLink Button Button--anchorLink Button--alt Button--custom ml4 action-buttons";
     autoSetupButton.onclick = performAutoSetup;
     const innerSpan = document.createElement("span");
     innerSpan.textContent = "Auto";
