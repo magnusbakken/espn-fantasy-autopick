@@ -1,6 +1,6 @@
 {
     "name": "espn-fantasy-autopick",
-    "version": "2.2.0",
+    "version": "2.2.1",
     "description": "A Chrome extension that adds a button that lets you automatically add active players to the current roster in an ESPN NBA fantasy league.",
     "repository": "https://github.com/magnusbakken/espn-fantasy-autopick.git",
     "author": "Magnus Grindal Bakken <magnusbakken@gmail.com>",
