@@ -5,12 +5,21 @@ SLOT_TYPE_POWER_FORWARD = "PF";
 SLOT_TYPE_CENTER = "C";
 SLOT_TYPE_GUARD = "G";
 SLOT_TYPE_FORWARD = "F";
+SLOT_TYPE_SHOOTING_GUARD_SMALL_FORWARD = "SG/SF";
+SLOT_TYPE_GUARD_FORWARD = "G/F";
+SLOT_TYPE_POWER_FORWARD_CENTER = "PF/C";
+SLOT_TYPE_FORWARD_CENTER = "F/C";
 SLOT_TYPE_UTIL = "UTIL";
 SLOT_TYPE_BENCH = "Bench";
 SLOT_TYPE_IR = "IR";
 
-SPECIFIC_SLOT_TYPES = [SLOT_TYPE_POINT_GUARD, SLOT_TYPE_SHOOTING_GUARD, SLOT_TYPE_SMALL_FORWARD, SLOT_TYPE_POWER_FORWARD, SLOT_TYPE_CENTER];
-GENERIC_SLOT_TYPES = [SLOT_TYPE_GUARD, SLOT_TYPE_FORWARD, SLOT_TYPE_UTIL];
+POSITION_SLOT_MAPPING = {
+    "PG": [SLOT_TYPE_POINT_GUARD, SLOT_TYPE_GUARD, SLOT_TYPE_GUARD_FORWARD, SLOT_TYPE_UTIL],
+    "SG": [SLOT_TYPE_SHOOTING_GUARD, SLOT_TYPE_GUARD, SLOT_TYPE_SHOOTING_GUARD_SMALL_FORWARD, SLOT_TYPE_GUARD_FORWARD, SLOT_TYPE_UTIL],
+    "SF": [SLOT_TYPE_SMALL_FORWARD, SLOT_TYPE_FORWARD, SLOT_TYPE_SHOOTING_GUARD_SMALL_FORWARD, SLOT_TYPE_GUARD_FORWARD, SLOT_TYPE_FORWARD_CENTER, SLOT_TYPE_UTIL],
+    "PF": [SLOT_TYPE_POWER_FORWARD, SLOT_TYPE_FORWARD, SLOT_TYPE_GUARD_FORWARD, SLOT_TYPE_POWER_FORWARD_CENTER, SLOT_TYPE_FORWARD_CENTER, SLOT_TYPE_UTIL],
+    "C": [SLOT_TYPE_CENTER, SLOT_TYPE_POWER_FORWARD_CENTER, SLOT_TYPE_FORWARD_CENTER, SLOT_TYPE_UTIL],
+}
 
 class ActivePlayerSlot {
     constructor(slotId, slotType) {
@@ -106,18 +115,7 @@ class RosterState {
 }
 
 function positionMatchesSlot(position, slot) {
-    const slotType = slot.slotType;
-    if (slotType === "UTIL") {
-        return true;
-    }
-    switch (position) {
-        case "PG": return slotType === "PG" || slotType === "G";
-        case "SG": return slotType === "SG" || slotType === "G";
-        case "SF": return slotType === "SF" || slotType === "F";
-        case "PF": return slotType === "PF" || slotType === "F";
-        case "C": return slotType === "C";
-        default: throw new Error("Unknown position type: ", position);
-    }
+    return POSITION_SLOT_MAPPING[position].includes(slot.slotType);
 }
 
 function playerMatchesSlot(player, slot) {
@@ -154,7 +152,7 @@ function findBestPlayerForSlot(rosterState, slot, availablePlayers) {
     const currentPlayer = rosterState.currentPlayer(slot);
     const currentPlayerIsPlaying = currentPlayer !== null && possiblePlayers.map(p => p.playerId).includes(currentPlayer.playerId);
     const currentPlayerIsHealthy = currentPlayer !== null && healthiestPlayers.map(p => p.playerId).includes(currentPlayer.playerId);
-    if (currentPlayerIsPlaying && (rosterState.hasRoomForEveryone || currentPlayerIsHealthy)) {
+    if (currentPlayerIsPlaying && (rosterState.hasRoomForEveryone || currentPlayerIsHealthy)) { // TODO: may need to move the player even if healthy, if the player is the only one that fits another slot.
         console.debug("Keeping current player for slot", slot, currentPlayer);
         return currentPlayer;
     }

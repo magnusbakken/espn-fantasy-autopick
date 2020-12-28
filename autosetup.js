@@ -25,6 +25,10 @@ function parseSlotType(text) {
         case "C": return SLOT_TYPE_CENTER;
         case "G": return SLOT_TYPE_GUARD;
         case "F": return SLOT_TYPE_FORWARD;
+        case "SG/SF": return SLOT_TYPE_SHOOTING_GUARD_SMALL_FORWARD;
+        case "G/F": return SLOT_TYPE_GUARD_FORWARD;
+        case "PF/C": return SLOT_TYPE_POWER_FORWARD_CENTER;
+        case "F/C": return SLOT_TYPE_FORWARD_CENTER;
         case "UTIL": return SLOT_TYPE_UTIL;
         case "Bench": return SLOT_TYPE_BENCH;
         case "IR": return SLOT_TYPE_IR;
