@@ -25,21 +25,35 @@
                         Actions
                     </div>
                     <div class="card-body">
-                        <button id="setupCurrentPageButton" class="btn btn-lg btn-link">Set up team on current page</button>
-                        <button id="setupCurrentWeekButton" class="btn btn-lg btn-link">Set up for the rest of the week</button>
+                        <button id="setupCurrentPageButton" class="btn btn-sm btn-link">⌚ Set up for current day</button>
+                        <br>
+                        <button id="setupCurrentWeekButton" class="btn btn-sm btn-link">📅 Set up for current week</button>
                     </div>
                 </div>
                 <br>
                 <div class="card border-primary">
                     <div class="card-header bg-primary text-white">
-                        Settings
+                        Quick settings
                     </div>
                     <div class="card-body">
                         <form>
-                            <div class="form-group">
-                                <label for="saveDelayInput">Delay between automatic moves (ms)</label>
-                                <input class="form-field-input setting" type="number" value="" id="saveDelayInput">
-                                <small class="form-text text-muted">If this delay is too short the save operation may fail.</small>
+                            <div class="form-group-sm row" data-toggle="tooltip" title="The time between automatic moves. If the delay is too short the save operation may fail.">
+                                <label for="saveDelayInput" class="col-sm-4 col-form-label col-form-label-sm">Move delay (ms)</label>
+                                <div class="col-sm-3">
+                                    <input class="form-control form-control-sm setting" type="number" id="saveDelayInput">
+                                </div>
+                            </div>
+                            <div class="form-group-sm row" data-toggle="tooltip" title="When doing multi-day setups, this is how long to wait for the next day to load.">
+                                <label for="loadDelayInput" class="col-sm-4 col-form-label col-form-label-sm">Roster load delay (ms)</label>
+                                <div class="col-sm-3">
+                                    <input class="form-control form-control-sm setting" type="number" id="loadDelayInput">
+                                </div>
+                            </div>
+                            <div class="form-group-sm row" data-toggle="tooltip" title="When doing multi-day setups, this is the maximum number of times to wait for the roster to load before giving up.">
+                                <label for="loadMaxAttemptsInput" class="col-sm-4 col-form-label col-form-label-sm">Roster load attempts</label>
+                                <div class="col-sm-3">
+                                    <input class="form-control form-control-sm setting" type="number" id="loadMaxAttemptsInput">
+                                </div>
                             </div>
                         </form>
                         <p class="card-text text-right">

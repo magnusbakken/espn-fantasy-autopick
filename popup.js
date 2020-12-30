@@ -28,9 +28,23 @@ function viewOnGitHub() {
 
 function changeSaveDelay() {
     const saveDelayInput = document.getElementById('saveDelayInput');
+    updateSettings(settings => settings.saveDelay = saveDelayInput.value);
+}
+
+function changeLoadDelay() {
+    const loadDelayInput = document.getElementById('loadDelayInput');
+    updateSettings(settings => settings.loadDelay = loadDelayInput.value);
+}
+
+function changeLoadMaxAttempts() {
+    const loadMaxAttemptsInput = document.getElementById('loadMaxAttemptsInput');
+    updateSettings(settings => settings.loadMaxAttempts = loadMaxAttemptsInput.value);
+}
+
+function updateSettings(action) {
     withSettings(settings => {
-        settings.saveDelay = saveDelayInput.value;
-        saveSettings(settings);
+        action(settings);
+        saveSettings();
     });
 }
 
@@ -52,5 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
     on('#setupCurrentWeekButton', "click", performCurrentWeekSetup)
     on('#viewOnGitHubButton', "click", viewOnGitHub);
     on('#saveDelayInput', "input", changeSaveDelay);
+    on('#loadDelayInput', "input", changeLoadDelay);
+    on('#loadMaxAttemptsInput', "input", changeLoadMaxAttempts);
     on('#showSettingsPageLink', "click", showSettingsPage);
 });

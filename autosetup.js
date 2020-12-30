@@ -74,7 +74,7 @@ function goToNextWeek(action) {
     setTimeout(action, 100);
 }
 
-function waitForRoster(expectedDate, action) {
+function waitForRoster(expectedDate, loadDelay, loadMaxAttempts, action) {
     // We expect to see a date on the form "December 30" in the refreshed page.
     // The text appears in all caps, but that's because of a CSS rule, so we don't need to convert to uppercase.
     console.debug('Checking if the roster has been loaded for the expected date', expectedDate);
@@ -85,19 +85,19 @@ function waitForRoster(expectedDate, action) {
         const expectedHeader = document.querySelector(selector);
         if (!expectedHeader) {
             console.warn(`Expected date header not found in roster table after ${numAttempts + 1} attempts`);
-            if (numAttempts + 1 < DEFAULT_LOAD_ATTEMPT_LIMIT) {
-                setTimeout(() => retry(numAttempts + 1), DEFAULT_LOAD_TIMEOUT_MS);
+            if (numAttempts + 1 < loadMaxAttempts) {
+                setTimeout(() => retry(numAttempts + 1), loadDelay);
             } else {
                 console.warn(`Giving up. The selector that failed was "${selector}"`);
             }
         } else {
-            setTimeout(action, DEFAULT_LOAD_TIMEOUT_MS);
+            setTimeout(action, loadDelay);
         }
     };
     retry(0);
 }
 
-function goToDay(idx, action) {
+function goToDay(idx, loadDelay, loadMaxAttempts, action) {
     const currentWeek = getCurrentWeekDiv();
     const dayDiv = dayByIndex(currentWeek, idx);
     const expectedDate = dateForDayDiv(dayDiv);
@@ -106,10 +106,10 @@ function goToDay(idx, action) {
         return;
     }
     dayDiv.click();
-    waitForRoster(expectedDate, action);
+    waitForRoster(expectedDate, loadDelay, loadMaxAttempts, action);
 }
 
-function goToNextDay(action) {
+function goToNextDay(loadDelay, loadMaxAttempts, action) {
     const currentWeek = getCurrentWeekDiv();
     if (!currentWeek) {
         console.warn('Unable to find current week element on page');
@@ -121,9 +121,9 @@ function goToNextDay(action) {
         return;
     }
     if (idx === 4) { // There are always 5 days per "week".
-        goToNextWeek(() => goToDay(0, action));
+        goToNextWeek(() => goToDay(0, loadDelay, loadMaxAttempts, action));
     } else {
-        goToDay(idx+1, action);
+        goToDay(idx+1, loadDelay, loadMaxAttempts, action);
     }
 }
 
@@ -363,7 +363,9 @@ const observer = new MutationObserver(mutations => {
 observer.observe(document.body, { childList: true, subtree: true });
 
 const currentSettings = {
-    saveDelay: DEFAULT_OPERATION_TIMEOUT_MS
+    saveDelay: DEFAULT_OPERATION_TIMEOUT_MS,
+    loadDelay: DEFAULT_LOAD_TIMEOUT_MS,
+    loadMaxAttempts: DEFAULT_LOAD_ATTEMPT_LIMIT,
 };
 
 function updateSettings(settings) {
@@ -404,13 +406,15 @@ function performMultiDaySetup(stopValue) {
     stopDate.setMinutes(0);
     stopDate.setSeconds(0);
     console.debug('Performing muiti-day setup ending on', stopDate);
+    const loadDelay = currentSettings.loadDelay;
+    const loadMaxAttempts = currentSettings.loadMaxAttempts;
     performAutoSetup(() => {
         let count = 0;
         const go = () => {
             count++;
             const currentDate = getCurrentDate();
             if (currentDate < stopDate) {
-                goToNextDay(() => performAutoSetup(go));
+                goToNextDay(loadDelay, loadMaxAttempts, () => performAutoSetup(go));
             } else {
                 console.debug(`Finished automatic setup after setting up ${count} days`);
             }
