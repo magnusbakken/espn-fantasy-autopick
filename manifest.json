@@ -20,7 +20,14 @@
                 "default": "Ctrl+Shift+A",
                 "mac": "Command+Shift+A"
             },
-            "description": "Perform automatic team setup"
+            "description": "Perform automatic setup for the current day"
+        },
+        "perform-current-week-setup": {
+            "suggested_key": {
+                "default": "Ctrl+Shift+W",
+                "mac": "Command+Shift+W"
+            },
+            "description": "Perform automatic setup for the current week"
         }
     },
     "background": {
