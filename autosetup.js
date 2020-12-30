@@ -2,6 +2,12 @@ DEFAULT_OPERATION_TIMEOUT_MS = 1000;
 DEFAULT_LOAD_TIMEOUT_MS = 1000;
 DEFAULT_LOAD_ATTEMPT_LIMIT = 10;
 
+const currentSettings = {
+    saveDelay: DEFAULT_OPERATION_TIMEOUT_MS,
+    loadDelay: DEFAULT_LOAD_TIMEOUT_MS,
+    loadMaxAttempts: DEFAULT_LOAD_ATTEMPT_LIMIT,
+};
+
 function getCurrentWeekDiv() {
     return document.querySelector('div.currentWeek > div.Week__wrapper');
 }
@@ -346,28 +352,6 @@ function addAutoSetupButton(myTeamButtonsDiv) {
     fixTransactionCounterTooltip();
 }
 
-const observer = new MutationObserver(mutations => {
-    for (const mutation of mutations) {
-        const contentNavDiv = Array.from(mutation.addedNodes).filter(n => n.classList && n.classList.contains('content-nav'))[0];
-        if (!contentNavDiv) {
-            continue;
-        }
-        const myTeamButtonsDiv = contentNavDiv.getElementsByClassName('myTeamButtons')[0];
-        if (!myTeamButtonsDiv) {
-            console.warn('Unable to find expected div with class name "myTeamButtons"');
-            break;
-        }
-        addAutoSetupButton(myTeamButtonsDiv);
-    }
-});
-observer.observe(document.body, { childList: true, subtree: true });
-
-const currentSettings = {
-    saveDelay: DEFAULT_OPERATION_TIMEOUT_MS,
-    loadDelay: DEFAULT_LOAD_TIMEOUT_MS,
-    loadMaxAttempts: DEFAULT_LOAD_ATTEMPT_LIMIT,
-};
-
 function updateSettings(settings) {
     console.debug('Updating extension settings', settings);
     currentSettings.saveDelay = settings.saveDelay;
@@ -422,6 +406,22 @@ function performMultiDaySetup(stopValue) {
         go();
     });
 }
+
+const observer = new MutationObserver(mutations => {
+    for (const mutation of mutations) {
+        const contentNavDiv = Array.from(mutation.addedNodes).filter(n => n.classList && n.classList.contains('content-nav'))[0];
+        if (!contentNavDiv) {
+            continue;
+        }
+        const myTeamButtonsDiv = contentNavDiv.getElementsByClassName('myTeamButtons')[0];
+        if (!myTeamButtonsDiv) {
+            console.warn('Unable to find expected div with class name "myTeamButtons"');
+            break;
+        }
+        addAutoSetupButton(myTeamButtonsDiv);
+    }
+});
+observer.observe(document.body, { childList: true, subtree: true });
 
 chrome.runtime.onMessage.addListener(function(message) {
     console.debug("Received message", message);
