@@ -1,10 +1,19 @@
-function performAutoSetup() {
-    console.debug('Performing auto-setup');
+function performSetup(command) {
     chrome.tabs.getSelected(null, function (tab) {
         chrome.tabs.sendMessage(tab.id, {
-            commandId: 'perform-auto-setup',
+            commandId: command,
         }); 
     });
+}
+
+function performCurrentDaySetup() {
+    console.debug('Performing auto-setup for current day');
+    performSetup('perform-auto-setup');
+}
+
+function performCurrentWeekSetup() {
+    console.debug('Performing auto-setup for current week');
+    performSetup('perform-current-week-setup');
 }
 
 function viewOnGitHub() {
@@ -39,8 +48,9 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelector('.popup-version-number').innerText = `(${manifest.version})`;
     withSettings(restoreSettings);
 
-    on('#setupCurrentPageButton', 'click', performAutoSetup);
-    on('#viewOnGitHubButton', 'click', viewOnGitHub);
-    on('#saveDelayInput', 'input', changeSaveDelay);
-    on('#showSettingsPageLink', 'click', showSettingsPage);
+    on('#setupCurrentPageButton', "click", performCurrentDaySetup);
+    on('#setupCurrentWeekButton', "click", performCurrentWeekSetup)
+    on('#viewOnGitHubButton', "click", viewOnGitHub);
+    on('#saveDelayInput', "input", changeSaveDelay);
+    on('#showSettingsPageLink', "click", showSettingsPage);
 });
