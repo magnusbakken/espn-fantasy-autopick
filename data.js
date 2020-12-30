@@ -1,24 +1,24 @@
-SLOT_TYPE_POINT_GUARD = "PG";
-SLOT_TYPE_SHOOTING_GUARD = "SG";
-SLOT_TYPE_SMALL_FORWARD = "SF";
-SLOT_TYPE_POWER_FORWARD = "PF";
-SLOT_TYPE_CENTER = "C";
-SLOT_TYPE_GUARD = "G";
-SLOT_TYPE_FORWARD = "F";
-SLOT_TYPE_SHOOTING_GUARD_SMALL_FORWARD = "SG/SF";
-SLOT_TYPE_GUARD_FORWARD = "G/F";
-SLOT_TYPE_POWER_FORWARD_CENTER = "PF/C";
-SLOT_TYPE_FORWARD_CENTER = "F/C";
-SLOT_TYPE_UTIL = "UTIL";
-SLOT_TYPE_BENCH = "Bench";
-SLOT_TYPE_IR = "IR";
+SLOT_TYPE_POINT_GUARD = 'PG';
+SLOT_TYPE_SHOOTING_GUARD = 'SG';
+SLOT_TYPE_SMALL_FORWARD = 'SF';
+SLOT_TYPE_POWER_FORWARD = 'PF';
+SLOT_TYPE_CENTER = 'C';
+SLOT_TYPE_GUARD = 'G';
+SLOT_TYPE_FORWARD = 'F';
+SLOT_TYPE_SHOOTING_GUARD_SMALL_FORWARD = 'SG/SF';
+SLOT_TYPE_GUARD_FORWARD = 'G/F';
+SLOT_TYPE_POWER_FORWARD_CENTER = 'PF/C';
+SLOT_TYPE_FORWARD_CENTER = 'F/C';
+SLOT_TYPE_UTIL = 'UTIL';
+SLOT_TYPE_BENCH = 'Bench';
+SLOT_TYPE_IR = 'IR';
 
 POSITION_SLOT_MAPPING = {
-    "PG": [SLOT_TYPE_POINT_GUARD, SLOT_TYPE_GUARD, SLOT_TYPE_GUARD_FORWARD, SLOT_TYPE_UTIL],
-    "SG": [SLOT_TYPE_SHOOTING_GUARD, SLOT_TYPE_GUARD, SLOT_TYPE_SHOOTING_GUARD_SMALL_FORWARD, SLOT_TYPE_GUARD_FORWARD, SLOT_TYPE_UTIL],
-    "SF": [SLOT_TYPE_SMALL_FORWARD, SLOT_TYPE_FORWARD, SLOT_TYPE_SHOOTING_GUARD_SMALL_FORWARD, SLOT_TYPE_GUARD_FORWARD, SLOT_TYPE_FORWARD_CENTER, SLOT_TYPE_UTIL],
-    "PF": [SLOT_TYPE_POWER_FORWARD, SLOT_TYPE_FORWARD, SLOT_TYPE_GUARD_FORWARD, SLOT_TYPE_POWER_FORWARD_CENTER, SLOT_TYPE_FORWARD_CENTER, SLOT_TYPE_UTIL],
-    "C": [SLOT_TYPE_CENTER, SLOT_TYPE_POWER_FORWARD_CENTER, SLOT_TYPE_FORWARD_CENTER, SLOT_TYPE_UTIL],
+    'PG': [SLOT_TYPE_POINT_GUARD, SLOT_TYPE_GUARD, SLOT_TYPE_GUARD_FORWARD, SLOT_TYPE_UTIL],
+    'SG': [SLOT_TYPE_SHOOTING_GUARD, SLOT_TYPE_GUARD, SLOT_TYPE_SHOOTING_GUARD_SMALL_FORWARD, SLOT_TYPE_GUARD_FORWARD, SLOT_TYPE_UTIL],
+    'SF': [SLOT_TYPE_SMALL_FORWARD, SLOT_TYPE_FORWARD, SLOT_TYPE_SHOOTING_GUARD_SMALL_FORWARD, SLOT_TYPE_GUARD_FORWARD, SLOT_TYPE_FORWARD_CENTER, SLOT_TYPE_UTIL],
+    'PF': [SLOT_TYPE_POWER_FORWARD, SLOT_TYPE_FORWARD, SLOT_TYPE_GUARD_FORWARD, SLOT_TYPE_POWER_FORWARD_CENTER, SLOT_TYPE_FORWARD_CENTER, SLOT_TYPE_UTIL],
+    'C': [SLOT_TYPE_CENTER, SLOT_TYPE_POWER_FORWARD_CENTER, SLOT_TYPE_FORWARD_CENTER, SLOT_TYPE_UTIL],
 }
 
 class ActivePlayerSlot {
@@ -28,10 +28,10 @@ class ActivePlayerSlot {
     }
 }
 
-PLAYER_HEALTH_HEALTHY = "HEALTHY";
-PLAYER_HEALTH_DAYTODAY = "DTD";
-PLAYER_HEALTH_OUT = "O";
-PLAYER_HEALTH_SUSPENDED = "SSPD";
+PLAYER_HEALTH_HEALTHY = 'HEALTHY';
+PLAYER_HEALTH_DAYTODAY = 'DTD';
+PLAYER_HEALTH_OUT = 'O';
+PLAYER_HEALTH_SUSPENDED = 'SSPD';
 
 PLAYER_HEALTH_LEVELS = [PLAYER_HEALTH_HEALTHY, PLAYER_HEALTH_DAYTODAY, PLAYER_HEALTH_OUT, PLAYER_HEALTH_SUSPENDED];
 
@@ -139,11 +139,11 @@ function numberOfPossiblePlayers(slot, players) {
 function findBestPlayerForSlot(rosterState, slot, availablePlayers) {
     const possiblePlayers = availablePlayers.filter(p => playerMatchesSlot(p, slot));
     if (possiblePlayers.length === 0) {
-        console.debug("No possible player found for slot", slot);
+        console.debug('No possible player found for slot', slot);
         return null;
     } else if (possiblePlayers.length === 1) {
         const onlyPlayer = possiblePlayers[0];
-        console.debug("Single eligible player found for slot", slot, onlyPlayer);
+        console.debug('Single eligible player found for slot', slot, onlyPlayer);
         return onlyPlayer;
     }
     // We can keep an injured player in their current slot if there are enough slots for all players with games.
@@ -153,7 +153,7 @@ function findBestPlayerForSlot(rosterState, slot, availablePlayers) {
     const currentPlayerIsPlaying = currentPlayer !== null && possiblePlayers.map(p => p.playerId).includes(currentPlayer.playerId);
     const currentPlayerIsHealthy = currentPlayer !== null && healthiestPlayers.map(p => p.playerId).includes(currentPlayer.playerId);
     if (currentPlayerIsPlaying && (rosterState.hasRoomForEveryone || currentPlayerIsHealthy)) { // TODO: may need to move the player even if healthy, if the player is the only one that fits another slot.
-        console.debug("Keeping current player for slot", slot, currentPlayer);
+        console.debug('Keeping current player for slot', slot, currentPlayer);
         return currentPlayer;
     }
     // Don't choose a player who's already in a different slot of the same type. The ESPN page doesn't allow you to move a player from a slot
@@ -163,12 +163,12 @@ function findBestPlayerForSlot(rosterState, slot, availablePlayers) {
     while (playersWithCurrentSlots.length > 0) {
         const [player, currentSlot] = playersWithCurrentSlots[0];
         if (currentSlot === null || currentSlot.slotType !== slot.slotType) {
-            console.debug("Choosing first available player", slot, player);
+            console.debug('Choosing first available player', slot, player);
             return player;
         }
         playersWithCurrentSlots.splice(0, 1);
     }
-    console.debug("All available players are already occupying same slot type", slot);
+    console.debug('All available players are already occupying same slot type', slot);
     return null;
 }
 

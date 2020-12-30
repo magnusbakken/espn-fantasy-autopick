@@ -1,12 +1,12 @@
-const fs = require("fs");
+const fs = require('fs');
 
-RELEASE_TYPE_MAJOR = "major";
-RELEASE_TYPE_MINOR = "minor";
-RELEASE_TYPE_PATCH = "patch";
+RELEASE_TYPE_MAJOR = 'major';
+RELEASE_TYPE_MINOR = 'minor';
+RELEASE_TYPE_PATCH = 'patch';
 RELEASE_TYPES = [RELEASE_TYPE_MAJOR, RELEASE_TYPE_MINOR, RELEASE_TYPE_PATCH];
 
 VERSION_REGEX = /(\d+)\.(\d+)\.(\d+)/;
-VERSION_DECLARATION_REGEX: /(\s*)"version":\s*"(\d+\.\d+\.\d+)"\s*(,?)(\s*)/
+VERSION_DECLARATION_REGEX: /(\s*)'version':\s*'(\d+\.\d+\.\d+)'\s*(,?)(\s*)/
 
 class Version {
     constructor(major, minor, patch) {
@@ -42,20 +42,20 @@ function getNextVersion(version, releaseType) {
 
 function versionUpdater(newVersion) {
     return (match, leadingWhitespace, version, comma, trailingWhitespace, offset, string) => {
-        return `${leadingWhitespace}"version": ${newVersion.toString()}${comma}${trailingWhitespace}`;
+        return `${leadingWhitespace}'version': ${newVersion.toString()}${comma}${trailingWhitespace}`;
     };
 }
 
 function updateJson(filePath, newVersion) {
-    const input = fs.readFileSync(filePath, "utf-8");
+    const input = fs.readFileSync(filePath, 'utf-8');
     const json = JSON.parse(input);
     json.version = newVersion.toString();
     const output = JSON.stringify(json, null, 4); // 4 is the number of spaces to use for indentation.
-    fs.writeFileSync(filePath, output, "utf-8");
+    fs.writeFileSync(filePath, output, 'utf-8');
 }
 
 function findCurrentVersion(manifestFilePath) {
-    const input = fs.readFileSync(manifestFilePath, "utf-8");
+    const input = fs.readFileSync(manifestFilePath, 'utf-8');
     return Version.parse(JSON.parse(input).version);
 }
 
@@ -80,22 +80,22 @@ function releaseType(rt) {
 }
 
 const optionDefinitions = [
-    { name: "releaseType", type: releaseType },
+    { name: 'releaseType', type: releaseType },
     { name: 'manifestFilePath', type: String },
     { name: 'packageFilePath', type: String },
 ];
 
-const commandLineArgs = require("command-line-args");
+const commandLineArgs = require('command-line-args');
 const options = commandLineArgs(optionDefinitions);
 
 if (!options.releaseType) {
-    console.error("No release type given (--releaseType)");
+    console.error('No release type given (--releaseType)');
     process.exit(1);
 } else if (!options.manifestFilePath) {
-    console.error("No manifest file path given (--manifestFilePath)");
+    console.error('No manifest file path given (--manifestFilePath)');
     process.exit(1);
 } else if (!options.packageFilePath) {
-    console.error("No package file path given (--packageFilePath)");
+    console.error('No package file path given (--packageFilePath)');
     process.exit(1);
 } else {
     bumpVersion(options.releaseType, options.manifestFilePath, options.packageFilePath);

@@ -4,7 +4,7 @@ chrome.runtime.onInstalled.addListener(function() {
             {
                 conditions: [
                     new chrome.declarativeContent.PageStateMatcher({
-                        pageUrl: { hostEquals: "fantasy.espn.com", pathPrefix: "/basketball/team" },
+                        pageUrl: { hostEquals: 'fantasy.espn.com', pathPrefix: '/basketball/team' },
                     })
                 ],
                 actions: [ new chrome.declarativeContent.ShowPageAction() ]
@@ -14,12 +14,12 @@ chrome.runtime.onInstalled.addListener(function() {
 });
 
 function performAutoSetup() {
-    chrome.tabs.executeScript(null, { code: "performAutoSetup()" });
+    chrome.tabs.executeScript(null, { code: 'performAutoSetup()' });
 }
 
 chrome.commands.onCommand.addListener(function(command) {
-    console.debug("automatic setup triggered by command (hotkey)");
-    if (command === "perform-automatic-setup") {		
+    console.debug('automatic setup triggered by command (hotkey)');
+    if (command === 'perform-automatic-setup') {		
         performAutoSetup();		
     }		
 });

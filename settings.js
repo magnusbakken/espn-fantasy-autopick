@@ -1,6 +1,6 @@
 function currentSettings() {
     return {
-        saveDelay: document.getElementById("saveDelayInput").value,
+        saveDelay: document.getElementById('saveDelayInput').value,
     };
 }
 
@@ -16,11 +16,11 @@ function settingsAreEqual(settings1, settings2) {
 }
 
 function setSaveEnabled(enabled) {
-    const button = document.getElementById("saveButton");
+    const button = document.getElementById('saveButton');
     if (enabled) {
-        button.removeAttribute("disabled");
+        button.removeAttribute('disabled');
     } else {
-        button.setAttribute("disabled", "");
+        button.setAttribute('disabled', '');
     }
 }
 
@@ -39,15 +39,15 @@ function on(selector, event, action) {
     document.querySelector(selector).addEventListener(event, () => action());
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-    console.debug("Loading settings...");
+document.addEventListener('DOMContentLoaded', () => {
+    console.debug('Loading settings...');
     const manifest = chrome.runtime.getManifest();
-    document.querySelector(".settings-version-number").innerText = manifest.version;
+    document.querySelector('.settings-version-number').innerText = manifest.version;
     withSettings(settings => {
         restoreSettings(settings);
         originalSettings = settings;
     });
-    on(".setting", "change", settingsUpdated);
-    on(".setting", "input", settingsUpdated);
-    on("#saveButton", "click", performSave);
+    on('.setting', 'change', settingsUpdated);
+    on('.setting', 'input', settingsUpdated);
+    on('#saveButton', 'click', performSave);
 });
