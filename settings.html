@@ -15,7 +15,6 @@
     <body>
         <div class="container">
             <div class="masthead">
-                <h3 class="muted"><img src="assets/icon-64.png" alt="Logo"> ESPN NBA Fantasy Auto-Setup</h3>
                 <div class="navbar">
                     <ul class="nav nav-pills mb-3" id="tabs-pill" role="tablist">
                         <li class="nav-item">
@@ -33,9 +32,19 @@
                     <hr>
                     <form>
                         <div class="form-group">
-                            <label for="saveDelayInput">Delay between automatic moves (ms)</label>
+                            <label for="saveDelayInput">Delay between automatic moves (ms)</label><br>
                             <input class="form-field-input setting" type="number" value="" class="setting" id="saveDelayInput">
                             <small class="form-text text-muted">If this delay is too short the save operation may fail.</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="loadDelayInput">Roster load delay (ms)</label><br>
+                            <input class="form-field-input setting" type="number" value="" class="setting" id="loadDelayInput">
+                            <small class="form-text text-muted">When doing multi-day setups, this is how long to wait for the next day to load.</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="loadMaxAttemptsInput">Maximum roster load attempts</label><br>
+                            <input class="form-field-input setting" type="number" value="" class="setting" id="loadMaxAttemptsInput">
+                            <small class="form-text text-muted">When doing multi-day setups, this is the maximum number of times to wait for the roster to load before giving up.</small>
                         </div>
                     </form>
                     <br>

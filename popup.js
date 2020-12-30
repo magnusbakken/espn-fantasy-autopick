@@ -1,10 +1,19 @@
-function performAutoSetup() {
-    console.debug('Performing auto-setup');
+function performSetup(command) {
     chrome.tabs.getSelected(null, function (tab) {
         chrome.tabs.sendMessage(tab.id, {
-            commandId: 'perform-auto-setup',
+            commandId: command,
         }); 
     });
+}
+
+function performCurrentDaySetup() {
+    console.debug('Performing auto-setup for current day');
+    performSetup('perform-auto-setup');
+}
+
+function performCurrentWeekSetup() {
+    console.debug('Performing auto-setup for current week');
+    performSetup('perform-current-week-setup');
 }
 
 function viewOnGitHub() {
@@ -19,9 +28,23 @@ function viewOnGitHub() {
 
 function changeSaveDelay() {
     const saveDelayInput = document.getElementById('saveDelayInput');
+    updateSettings(settings => settings.saveDelay = saveDelayInput.value);
+}
+
+function changeLoadDelay() {
+    const loadDelayInput = document.getElementById('loadDelayInput');
+    updateSettings(settings => settings.loadDelay = loadDelayInput.value);
+}
+
+function changeLoadMaxAttempts() {
+    const loadMaxAttemptsInput = document.getElementById('loadMaxAttemptsInput');
+    updateSettings(settings => settings.loadMaxAttempts = loadMaxAttemptsInput.value);
+}
+
+function updateSettings(action) {
     withSettings(settings => {
-        settings.saveDelay = saveDelayInput.value;
-        saveSettings(settings);
+        action(settings);
+        saveSettings();
     });
 }
 
@@ -39,8 +62,11 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelector('.popup-version-number').innerText = `(${manifest.version})`;
     withSettings(restoreSettings);
 
-    on('#setupCurrentPageButton', 'click', performAutoSetup);
-    on('#viewOnGitHubButton', 'click', viewOnGitHub);
-    on('#saveDelayInput', 'input', changeSaveDelay);
-    on('#showSettingsPageLink', 'click', showSettingsPage);
+    on('#setupCurrentPageButton', "click", performCurrentDaySetup);
+    on('#setupCurrentWeekButton', "click", performCurrentWeekSetup)
+    on('#viewOnGitHubButton', "click", viewOnGitHub);
+    on('#saveDelayInput', "input", changeSaveDelay);
+    on('#loadDelayInput', "input", changeLoadDelay);
+    on('#loadMaxAttemptsInput', "input", changeLoadMaxAttempts);
+    on('#showSettingsPageLink', "click", showSettingsPage);
 });

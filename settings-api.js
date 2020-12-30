@@ -1,5 +1,7 @@
 DEFAULT_OPTIONS = {
-    saveDelay: 1000
+    saveDelay: 1000,
+    loadDelay: 1000,
+    loadMaxAttempts: 10,
 };
 
 let originalSettings = DEFAULT_OPTIONS;
@@ -7,6 +9,8 @@ let originalSettings = DEFAULT_OPTIONS;
 function restoreSettings(settings) {
     console.debug('Restoring settings', settings);
     document.getElementById('saveDelayInput').value = settings.saveDelay;
+    document.getElementById('loadDelayInput').value = settings.loadDelay;
+    document.getElementById('loadMaxAttemptsInput').value = settings.loadMaxAttempts;
 }
 
 function saveSettings(settings) {
@@ -26,7 +30,5 @@ function saveSettings(settings) {
 }
 
 function withSettings(action) {
-    chrome.storage.sync.get(DEFAULT_OPTIONS, function (items) {
-        action(items);
-    });
+    chrome.storage.sync.get(DEFAULT_OPTIONS, action);
 }

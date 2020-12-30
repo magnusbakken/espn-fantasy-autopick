@@ -1,4 +1,137 @@
 DEFAULT_OPERATION_TIMEOUT_MS = 1000;
+DEFAULT_LOAD_TIMEOUT_MS = 1000;
+DEFAULT_LOAD_ATTEMPT_LIMIT = 10;
+
+const currentSettings = {
+    saveDelay: DEFAULT_OPERATION_TIMEOUT_MS,
+    loadDelay: DEFAULT_LOAD_TIMEOUT_MS,
+    loadMaxAttempts: DEFAULT_LOAD_ATTEMPT_LIMIT,
+};
+
+function getCurrentWeekDiv() {
+    return document.querySelector('div.currentWeek > div.Week__wrapper');
+}
+
+function currentDayIndex(weekDiv) {
+    const allDays = Array.from(weekDiv.getElementsByTagName('div'));
+    return allDays.findIndex(day => Array.from(day.classList).includes('is-current'));
+}
+
+function dayByIndex(weekDiv, idx) {
+    return Array.from(weekDiv.getElementsByTagName('div'))[idx];
+}
+
+function dateForDayDiv(dayDiv) {
+    const dateSpan = dayDiv.querySelector('span.day--date');
+    if (!dateSpan) {
+        return null;
+    }
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const currentYear = today.getFullYear();
+    const dateIfCurrentYear = new Date(`${dateSpan.innerText} ${currentYear}`);
+    if (dateIfCurrentYear >= today) {
+        return dateIfCurrentYear;
+    } else {
+        return new Date(`${dateSpan.innerText} ${currentYear + 1}`);
+    }
+}
+
+function getCurrentDate() {
+    const currentWeek = getCurrentWeekDiv();
+    if (!currentWeek) {
+        console.warn('Unable to find current week element on page');
+        return null;
+    }
+    const idx = currentDayIndex(currentWeek);
+    if (idx < 0) {
+        console.warn('Unable to find current day element on page');
+        return null;
+    }
+    const dayDiv = dayByIndex(currentWeek, idx);
+    const date = dateForDayDiv(dayDiv);
+    if (!date) {
+        console.warn('Unable to find calendar date of current day', currentWeek, idx);
+        return null;
+    }
+    return date;
+}
+
+function getLastDateOfCurrentWeek() {
+    // ESPN game weeks are always considered to end on Sundays.
+    // If the current day is a Sunday (for which getDay returns 0) we shouldn't keep going to the next week.
+    // This is why we only increase the date value when getDay returns 1-6.
+    const date = getCurrentDate();
+    const remainingDays = 7 - date.getDay();
+    if (remainingDays < 7) {
+        date.setDate(date.getDate() + remainingDays);
+    }
+    return date;
+}
+
+function goToNextWeek(action) {
+    const nextWeekButton = document.querySelector('button.Arrow--right');
+    if (!nextWeekButton) {
+        console.warn('Unable to find next week button on page');
+        return;
+    }
+    // This operation should be fast. All the weeks are already loaded into the DOM. Only the roster data is loaded from the server.
+    nextWeekButton.click();
+    setTimeout(action, 100);
+}
+
+function waitForRoster(expectedDate, loadDelay, loadMaxAttempts, action) {
+    // We expect to see a date on the form "December 30" in the refreshed page.
+    // The text appears in all caps, but that's because of a CSS rule, so we don't need to convert to uppercase.
+    console.debug('Checking if the roster has been loaded for the expected date', expectedDate);
+    const expectedMonthString = expectedDate.toLocaleString('en', { month: 'long' });
+    const expectedDateString = `${expectedMonthString} ${expectedDate.getDate()}`;
+    const retry = numAttempts => {
+        const selector = `th[title='${expectedDateString}']`;
+        const expectedHeader = document.querySelector(selector);
+        if (!expectedHeader) {
+            console.warn(`Expected date header not found in roster table after ${numAttempts + 1} attempts`);
+            if (numAttempts + 1 < loadMaxAttempts) {
+                setTimeout(() => retry(numAttempts + 1), loadDelay);
+            } else {
+                console.warn(`Giving up. The selector that failed was "${selector}"`);
+            }
+        } else {
+            setTimeout(action, loadDelay);
+        }
+    };
+    retry(0);
+}
+
+function goToDay(idx, loadDelay, loadMaxAttempts, action) {
+    const currentWeek = getCurrentWeekDiv();
+    const dayDiv = dayByIndex(currentWeek, idx);
+    const expectedDate = dateForDayDiv(dayDiv);
+    if (!expectedDate) {
+        console.warn('Unable to find calendar date of next day', currentWeek, idx);
+        return;
+    }
+    dayDiv.click();
+    waitForRoster(expectedDate, loadDelay, loadMaxAttempts, action);
+}
+
+function goToNextDay(loadDelay, loadMaxAttempts, action) {
+    const currentWeek = getCurrentWeekDiv();
+    if (!currentWeek) {
+        console.warn('Unable to find current week element on page');
+        return;
+    }
+    const idx = currentDayIndex(currentWeek);
+    if (idx < 0) {
+        console.warn('Unable to find current day element on page');
+        return;
+    }
+    if (idx === 4) { // There are always 5 days per "week".
+        goToNextWeek(() => goToDay(0, loadDelay, loadMaxAttempts, action));
+    } else {
+        goToDay(idx+1, loadDelay, loadMaxAttempts, action);
+    }
+}
 
 function getRosterRows() {
     const tableBody = document.querySelector('.players-table tbody.Table__TBODY');
@@ -150,9 +283,11 @@ function getHereButton(slotId) {
     return getActionButton(getRosterRows().starterRows[slotId]);
 }
 
-function performMove(currentRosterState, newMapping, saveDelay, whenFinished) {
+function performMove(currentRosterState, newMapping, saveDelay, action) {
     if (newMapping.length === 0) {
-        whenFinished();
+        if (action) {
+            action();
+        }
         return;
     }
     const [[slotId, player], ...remainingMapping] = newMapping;
@@ -166,7 +301,7 @@ function performMove(currentRosterState, newMapping, saveDelay, whenFinished) {
         if (moveButton === null) {
             const lockedButton = getLockedButton(player);
             if (lockedButton === null) {
-                console.error('No Move button found, and we don\'t know why.')
+                console.warn('No Move button found, and we don\'t know why.');
             } else {
                 console.debug('Unable to perform move because the player\'s slot is locked. This is probably because the player\'s game has already started, or is about to start.');
             }
@@ -184,38 +319,115 @@ function performMove(currentRosterState, newMapping, saveDelay, whenFinished) {
             } else {
                 hereButton.click();
             }
-            setTimeout(() => performMove(currentRosterState, remainingMapping, delay, whenFinished), delay);
+            setTimeout(() => performMove(currentRosterState, remainingMapping, delay, action), delay);
         }, delay);
     } else {
-        performMove(currentRosterState, remainingMapping, delay, whenFinished);
+        performMove(currentRosterState, remainingMapping, delay, action);
     }
 }
 
-function performMoves(currentRosterState, newRosterState, saveDelay) {
-    const whenFinished = () => {};
-    performMove(currentRosterState, Array.from(newRosterState.starterMapping), saveDelay, whenFinished);
+function performMoves(currentRosterState, newRosterState, saveDelay, action) {
+    performMove(currentRosterState, Array.from(newRosterState.starterMapping), saveDelay, action);
+}
+
+function createButton(label, tooltip, onclick) {
+    const autoSetupButton = document.createElement('a');
+    autoSetupButton.className = 'AnchorLink Button Button--anchorLink Button--alt Button--custom ml4 action-buttons';
+    autoSetupButton.style = 'min-width: auto';
+    autoSetupButton.title = tooltip;
+    autoSetupButton.onclick = onclick;
+    const innerSpan = document.createElement('span');
+    innerSpan.textContent = label;
+    autoSetupButton.appendChild(innerSpan);
+    return autoSetupButton;
 }
 
 function createAutoSetupButton() {
-    const autoSetupButton = document.createElement('a');
-    autoSetupButton.className = 'AnchorLink Button Button--anchorLink Button--alt Button--custom ml4 action-buttons';
-    autoSetupButton.onclick = performAutoSetup;
-    const innerSpan = document.createElement('span');
-    innerSpan.textContent = 'Auto';
-    autoSetupButton.appendChild(innerSpan);
-    return autoSetupButton;
+    return createButton('Auto (day)', 'Automatically set up the team for the current day', performAutoSetup);
+}
+
+function createAutoSetupWeekButton() {
+    return createButton('Auto (week)', 'Automatically set up the team for the remainder of the current week (Monday-Sunday)', performCurrentWeekSetup);
 }
 
 function fixTransactionCounterTooltip() {
     const tooltip = document.querySelector('.team-acquisitions-counter .counter-tooltip .tooltip-text');
     if (tooltip) {
-        tooltip.innerText = 'Transactions';
+        tooltip.innerText = '';
+    }
+}
+
+function fixSetLineupLabel() {
+    const label = document.querySelector('.scoring--period-label');
+    if (label) {
+        label.innerText = '🏀';
     }
 }
 
 function addAutoSetupButton(myTeamButtonsDiv) {
+    myTeamButtonsDiv.appendChild(createAutoSetupWeekButton());
     myTeamButtonsDiv.appendChild(createAutoSetupButton());
     fixTransactionCounterTooltip();
+    fixSetLineupLabel();
+}
+
+function updateSettings(settings) {
+    console.debug('Updating extension settings', settings);
+    currentSettings.saveDelay = settings.saveDelay;
+}
+
+function performAutoSetup(action) {
+    console.debug('Performing auto-setup with current settings', currentSettings);
+    const rosterState = getRosterState();
+    const newRosterState = calculateNewRoster(rosterState);
+    if (rosterState.isEquivalentTo(newRosterState)) {
+        console.debug('No moves are necessary');
+        action();
+    } else {
+        console.debug('Current active players', rosterState.starterMapping);
+        console.debug('Suggested new active players', newRosterState.starterMapping);
+        performMoves(rosterState, newRosterState, currentSettings.saveDelay, action);
+    }
+}
+
+function getStopDate(stopValue) {
+    if (stopValue === 'current-week') {
+        return getLastDateOfCurrentWeek();
+    } else if (typeof stopValue === 'number') {
+        console.error('Not implemented yet');
+    }
+}
+
+function performMultiDaySetup(stopValue) {
+    // We make sure the date is at the very beginning of the day so we don't accidentally keep going because of clock discrepancies.
+    const stopDate = getStopDate(stopValue);
+    if (!stopDate) {
+        console.warn('We were unable to find the date of the last day on which to perform setup with the stop value', stopValue);
+        return;
+    }
+    stopDate.setHours(0);
+    stopDate.setMinutes(0);
+    stopDate.setSeconds(0);
+    console.debug('Performing muiti-day setup ending on', stopDate);
+    const loadDelay = currentSettings.loadDelay;
+    const loadMaxAttempts = currentSettings.loadMaxAttempts;
+    performAutoSetup(() => {
+        let count = 0;
+        const go = () => {
+            count++;
+            const currentDate = getCurrentDate();
+            if (currentDate < stopDate) {
+                goToNextDay(loadDelay, loadMaxAttempts, () => performAutoSetup(go));
+            } else {
+                console.debug(`Finished automatic setup after setting up ${count} days`);
+            }
+        };
+        go();
+    });
+}
+
+function performCurrentWeekSetup() {
+    performMultiDaySetup('current-week');
 }
 
 const observer = new MutationObserver(mutations => {
@@ -234,33 +446,13 @@ const observer = new MutationObserver(mutations => {
 });
 observer.observe(document.body, { childList: true, subtree: true });
 
-const currentSettings = {
-    saveDelay: DEFAULT_OPERATION_TIMEOUT_MS
-};
-
-function updateSettings(settings) {
-    console.debug('Updating extension settings', settings);
-    currentSettings.saveDelay = settings.saveDelay;
-}
-
-function performAutoSetup() {
-    console.debug('Performing auto-setup with current settings', currentSettings);
-    const rosterState = getRosterState();
-    const newRosterState = calculateNewRoster(rosterState);
-    if (rosterState.isEquivalentTo(newRosterState)) {
-        console.debug('No moves are necessary');
-    } else {
-        console.debug('Current active players', rosterState.starterMapping);
-        console.debug('Suggested new active players', newRosterState.starterMapping);
-        performMoves(rosterState, newRosterState, currentSettings.saveDelay);
-    }
-}
-
-chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
-    console.debug('Received message', message);
-    if (message.commandId === 'perform-auto-setup') {
+chrome.runtime.onMessage.addListener(function(message) {
+    console.debug("Received message", message);
+    if (message.commandId === "perform-auto-setup") {
         performAutoSetup(currentSettings.saveDelay);
-    } else if (message.commandId === 'settings-changed') {
+    } else if (message.commandId === 'perform-current-week-setup') {
+        performMultiDaySetup('current-week');
+    } else if (message.commandId === "settings-changed") {
         updateSettings(message.settings);
     }
 });

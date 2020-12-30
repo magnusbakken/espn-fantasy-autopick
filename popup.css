@@ -1,5 +1,5 @@
 body {
-    width:400;
+    width: 590px; /* Needs to be bigger than 576px so Bootstrap doesn't believe we're on mobile. */
     padding: 5px;
 }
 

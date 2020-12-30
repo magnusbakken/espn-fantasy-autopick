@@ -1,6 +1,8 @@
 function currentSettings() {
     return {
         saveDelay: document.getElementById('saveDelayInput').value,
+        loadDelay: document.getElementById('loadDelayInput').value,
+        loadMaxAttempts: document.getElementById('loadMaxAttemptsInput').value,
     };
 }
 
