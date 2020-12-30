@@ -330,26 +330,45 @@ function performMoves(currentRosterState, newRosterState, saveDelay, action) {
     performMove(currentRosterState, Array.from(newRosterState.starterMapping), saveDelay, action);
 }
 
-function createAutoSetupButton() {
+function createButton(label, tooltip, onclick) {
     const autoSetupButton = document.createElement('a');
     autoSetupButton.className = 'AnchorLink Button Button--anchorLink Button--alt Button--custom ml4 action-buttons';
-    autoSetupButton.onclick = performAutoSetup;
+    autoSetupButton.style = 'min-width: auto';
+    autoSetupButton.title = tooltip;
+    autoSetupButton.onclick = onclick;
     const innerSpan = document.createElement('span');
-    innerSpan.textContent = 'Auto';
+    innerSpan.textContent = label;
     autoSetupButton.appendChild(innerSpan);
     return autoSetupButton;
+}
+
+function createAutoSetupButton() {
+    return createButton('Auto (day)', 'Automatically set up the team for the current day', performAutoSetup);
+}
+
+function createAutoSetupWeekButton() {
+    return createButton('Auto (week)', 'Automatically set up the team for the remainder of the current week (Monday-Sunday)', performCurrentWeekSetup);
 }
 
 function fixTransactionCounterTooltip() {
     const tooltip = document.querySelector('.team-acquisitions-counter .counter-tooltip .tooltip-text');
     if (tooltip) {
-        tooltip.innerText = 'Transactions';
+        tooltip.innerText = '';
+    }
+}
+
+function fixSetLineupLabel() {
+    const label = document.querySelector('.scoring--period-label');
+    if (label) {
+        label.innerText = '🏀';
     }
 }
 
 function addAutoSetupButton(myTeamButtonsDiv) {
+    myTeamButtonsDiv.appendChild(createAutoSetupWeekButton());
     myTeamButtonsDiv.appendChild(createAutoSetupButton());
     fixTransactionCounterTooltip();
+    fixSetLineupLabel();
 }
 
 function updateSettings(settings) {
@@ -405,6 +424,10 @@ function performMultiDaySetup(stopValue) {
         };
         go();
     });
+}
+
+function performCurrentWeekSetup() {
+    performMultiDaySetup('current-week');
 }
 
 const observer = new MutationObserver(mutations => {

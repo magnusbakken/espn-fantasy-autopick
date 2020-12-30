@@ -18,7 +18,7 @@ function performAutoSetup() {
 }
 
 function performMultiDaySetup() {
-    chrome.tabs.executeScript(null, { code: 'performMultiDaySetup("current-week")' });
+    chrome.tabs.executeScript(null, { code: 'performCurrentWeekSetup()' });
 }
 
 chrome.commands.onCommand.addListener(function(command) {
