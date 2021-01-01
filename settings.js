@@ -1,14 +1,15 @@
 function currentSettings() {
     return {
-        saveDelay: document.getElementById('saveDelayInput').value,
-        loadDelay: document.getElementById('loadDelayInput').value,
-        loadMaxAttempts: document.getElementById('loadMaxAttemptsInput').value,
+        saveDelay: parseInt(document.getElementById('saveDelayInput').value),
+        loadDelay: parseInt(document.getElementById('loadDelayInput').value),
+        loadMaxAttempts: parseInt(document.getElementById('loadMaxAttemptsInput').value),
+        customDaysDefault: parseInt(document.getElementById('customDaysInput').value),
     };
 }
 
 function settingsAreEqual(settings1, settings2) {
     for (const prop in settings1) {
-        if (settings1.hasOwnProperty(prop)) {
+        if (settings1.hasOwnProperty(prop) || settings2.hasOwnProperty(prop)) {
             if (settings1[prop] !== settings2[prop]) {
                 return false;
             }
@@ -38,7 +39,9 @@ function performSave() {
 }
 
 function on(selector, event, action) {
-    document.querySelector(selector).addEventListener(event, () => action());
+    for (const element of document.querySelectorAll(selector)) {
+        element.addEventListener(event, action);
+    }
 }
 
 document.addEventListener('DOMContentLoaded', () => {

@@ -1,11 +1,13 @@
 DEFAULT_OPERATION_TIMEOUT_MS = 1000;
 DEFAULT_LOAD_TIMEOUT_MS = 1000;
 DEFAULT_LOAD_ATTEMPT_LIMIT = 10;
+DEFAULT_CUSTOM_DAYS = 10;
 
 const currentSettings = {
     saveDelay: DEFAULT_OPERATION_TIMEOUT_MS,
     loadDelay: DEFAULT_LOAD_TIMEOUT_MS,
     loadMaxAttempts: DEFAULT_LOAD_ATTEMPT_LIMIT,
+    customDaysDefault: DEFAULT_CUSTOM_DAYS,
 };
 
 function getCurrentWeekDiv() {
@@ -66,6 +68,12 @@ function getLastDateOfCurrentWeek() {
     if (remainingDays < 7) {
         date.setDate(date.getDate() + remainingDays);
     }
+    return date;
+}
+
+function getLastDateForDayCount(days) {
+    const date = getCurrentDate();
+    date.setDate(date.getDate() + days);
     return date;
 }
 
@@ -394,7 +402,7 @@ function getStopDate(stopValue) {
     if (stopValue === 'current-week') {
         return getLastDateOfCurrentWeek();
     } else if (typeof stopValue === 'number') {
-        console.error('Not implemented yet');
+        return getLastDateForDayCount(stopValue);
     }
 }
 
@@ -447,12 +455,14 @@ const observer = new MutationObserver(mutations => {
 observer.observe(document.body, { childList: true, subtree: true });
 
 chrome.runtime.onMessage.addListener(function(message) {
-    console.debug("Received message", message);
-    if (message.commandId === "perform-auto-setup") {
+    console.debug('Received message', message);
+    if (message.commandId === 'perform-auto-setup') {
         performAutoSetup(currentSettings.saveDelay);
     } else if (message.commandId === 'perform-current-week-setup') {
         performMultiDaySetup('current-week');
-    } else if (message.commandId === "settings-changed") {
+    } else if (message.commandId === 'perform-multi-setup') {
+        performMultiDaySetup(parseInt(message.message.days));
+    } else if (message.commandId === 'settings-changed') {
         updateSettings(message.settings);
     }
 });
