@@ -351,11 +351,11 @@ function createButton(label, tooltip, onclick) {
 }
 
 function createAutoSetupButton() {
-    return createButton('Auto (day)', 'Automatically set up the team for the current day', performAutoSetup);
+    return createButton('Auto (day)', 'Automatically set up the team for the current day', () => performAutoSetup());
 }
 
 function createAutoSetupWeekButton() {
-    return createButton('Auto (week)', 'Automatically set up the team for the remainder of the current week (Monday-Sunday)', performCurrentWeekSetup);
+    return createButton('Auto (week)', 'Automatically set up the team for the remainder of the current week (Monday-Sunday)', () => performCurrentWeekSetup());
 }
 
 function fixTransactionCounterTooltip() {
@@ -390,7 +390,9 @@ function performAutoSetup(action) {
     const newRosterState = calculateNewRoster(rosterState);
     if (rosterState.isEquivalentTo(newRosterState)) {
         console.debug('No moves are necessary');
-        action();
+        if (action) {
+            action();
+        }
     } else {
         console.debug('Current active players', rosterState.starterMapping);
         console.debug('Suggested new active players', newRosterState.starterMapping);

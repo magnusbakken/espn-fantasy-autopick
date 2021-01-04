@@ -50,7 +50,7 @@ class Player {
     }
 
     compareHealth(otherPlayer) {
-        return PLAYER_HEALTH_LEVELS.indexOf(this.health) >= PLAYER_HEALTH_LEVELS.indexOf(otherPlayer.health);
+        return PLAYER_HEALTH_LEVELS.indexOf(this.health) - PLAYER_HEALTH_LEVELS.indexOf(otherPlayer.health);
     }
 }
 
@@ -65,6 +65,10 @@ class RosterState {
 
     get hasRoomForEveryone() {
         return this.players.filter(p => p.isPlaying || p.isInjuredReserve).length <= this.slots.length;
+    }
+
+    get isEveryonePlaying() {
+        return Array.from(this.benchMapping.values()).every(p => !p.isPlaying);
     }
 
     getCurrentPlayerSlot(player) {
@@ -190,6 +194,10 @@ function slotsByPreference(rosterState, availablePlayers) {
 }
 
 function calculateNewRoster(rosterState) {
+    if (rosterState.isEveryonePlaying) {
+        console.debug('Everybody is already playing');
+        return rosterState;
+    }
     const newRosterState = new RosterState(rosterState.slots, rosterState.players, new Map(rosterState.starterMapping), new Map(rosterState.benchMapping));
     const availablePlayers = rosterState.players.filter(p => p.isPlaying);
     for (const slot of slotsByPreference(rosterState, availablePlayers)) {
