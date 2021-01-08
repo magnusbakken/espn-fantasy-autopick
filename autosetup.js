@@ -298,10 +298,14 @@ function performMove(currentRosterState, newMapping, saveDelay, action) {
         }
         return;
     }
-    const [[slotId, player], ...remainingMapping] = newMapping;
-    const currentPlayer = currentRosterState.starterMapping.get(slotId);
     const delay = saveDelay || DEFAULT_OPERATION_TIMEOUT_MS;
-    if (player !== null && (currentPlayer === null || currentPlayer.playerId !== player.playerId)) {
+    const [[slotId, player], ...remainingMapping] = newMapping;
+    if (player === null) {
+        performMove(currentRosterState, remainingMapping, delay, action);
+        return;
+    }
+    const currentPlayer = currentRosterState.starterMapping.get(slotId);
+    if (currentPlayer === null || currentPlayer.playerId !== player.playerId) {
         console.debug('Moving player to slot', player, slotId);
         // Wait for a short while between sending clicks to the Move button and to the Here button.
         // Without this we get intermittent errors from the click handlers on the ESPN page.
@@ -330,6 +334,9 @@ function performMove(currentRosterState, newMapping, saveDelay, action) {
             setTimeout(() => performMove(currentRosterState, remainingMapping, delay, action), delay);
         }, delay);
     } else {
+        if (currentPlayer !== null && currentPlayer.playerId === player.playerId) {
+            console.debug('Not moving player because they\'re already in the destination slot', player, slotId);
+        }
         performMove(currentRosterState, remainingMapping, delay, action);
     }
 }
