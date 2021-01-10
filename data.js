@@ -68,7 +68,7 @@ class RosterState {
     }
 
     get isEveryonePlaying() {
-        return Array.from(this.benchMapping.values()).every(p => !p.isPlaying);
+        return Array.from(this.benchMapping.values()).every(p => p && !p.isPlaying);
     }
 
     getCurrentPlayerSlot(player) {
