@@ -391,8 +391,8 @@ function updateSettings(settings) {
     currentSettings.saveDelay = settings.saveDelay;
 }
 
-function performAutoSetup(action) {
-    console.debug('Performing auto-setup with current settings', currentSettings);
+function performAutoSetup(action, isRetry) {
+    console.debug('Performing auto-setup with current settings', currentSettings, isRetry);
     const rosterState = getRosterState();
     const newRosterState = calculateNewRoster(rosterState);
     if (rosterState.isEquivalentTo(newRosterState)) {
@@ -403,7 +403,21 @@ function performAutoSetup(action) {
     } else {
         console.debug('Current active players', rosterState.starterMapping);
         console.debug('Suggested new active players', newRosterState.starterMapping);
-        performMoves(rosterState, newRosterState, currentSettings.saveDelay, action);
+        const retryIfIncomplete = () => {
+            // Sometimes a move may have failed to execute as expected, and we're left with a bad roster state.
+            // One known cause of this is that the ESPN page shuffles around the UTIL slots in some cases,
+            // potentially causing incorrect moves: https://github.com/magnusbakken/espn-fantasy-autopick/issues/7
+            // If we detect retry once we should get the right result in 99% of cases.
+            // We only retry once, so we can't stuck in an infinite retry loop.
+            const finishedRosterState = getRosterState();
+            if (!isRetry && !finishedRosterState.isEquivalentTo(newRosterState)) {
+                console.debug('Failed to execute all the expected moves. Retrying once', newRosterState, finishedRosterState);
+                performAutoSetup(action, true);
+            } else if (action) {
+                action();
+            }
+        };
+        performMoves(rosterState, newRosterState, currentSettings.saveDelay, retryIfIncomplete);
     }
 }
 

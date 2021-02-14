@@ -52,6 +52,10 @@ class Player {
     compareHealth(otherPlayer) {
         return PLAYER_HEALTH_LEVELS.indexOf(this.health) - PLAYER_HEALTH_LEVELS.indexOf(otherPlayer.health);
     }
+
+    isEqualTo(otherPlayer) {
+        return otherPlayer === null || this.playerId === otherPlayer.playerId;
+    }
 }
 
 class RosterState {
@@ -109,8 +113,9 @@ class RosterState {
     }
 
     isEquivalentTo(otherRosterState) {
-        for (const [key, value] of this.starterMapping.entries()) {
-            if (value !== otherRosterState.starterMapping.get(key)) {
+        for (const [key, player] of this.starterMapping.entries()) {
+            const otherPlayer = otherRosterState.starterMapping.get(key);
+            if ((player === null && otherPlayer !== null) || (player !== null && !player.isEqualTo(otherPlayer))) {
                 return false;
             }
         }
