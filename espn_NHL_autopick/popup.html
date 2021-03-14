@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <title>ESPN NBA Fantasy Auto-Setup</title>
+
+        <link href="lib/bootstrap.min.css" rel="stylesheet">
+        <link href="popup.css" rel="stylesheet">
+        <script src="settings-api.js"></script>
+        <script src="popup.js"></script>
+    </head>
+    <body>
+        <wrapper class="d-flex flex-column">
+            <nav class="navbar navbar-light bg-faded">
+                <a class="navbar-brand">
+                    <img src="assets/icon-32.png" width="32" height="32" class="d-inline-block align-top" alt="">
+                    ESPN NBA Fantasy Auto-Setup <span class="popup-version-number"></span>
+                </a>
+            </nav>
+            <main>
+                <div class="card border-primary">
+                    <div class="card-header bg-primary text-white">
+                        Actions
+                    </div>
+                    <div class="card-body">
+                        <button id="setupCurrentPageButton" class="btn btn-sm btn-link">⌚ Set up for current day</button>
+                        <br>
+                        <button id="setupCurrentWeekButton" class="btn btn-sm btn-link">📅 Set up for current week</button>
+                        <br>
+                        <button id="setupCustomDaysButton" class="btn btn-sm btn-link">
+                            📆 Set up for <input type="number" value="10" min="1" max="200" id="customDaysInput" style="width: 50px"> days
+                        </button>
+                    </div>
+                </div>
+                <br>
+                <div class="card border-primary">
+                    <div class="card-header bg-primary text-white">
+                        Quick settings
+                    </div>
+                    <div class="card-body">
+                        <form>
+                            <div class="form-group-sm row" data-toggle="tooltip" title="The time between automatic moves. If the delay is too short the save operation may fail.">
+                                <label for="saveDelayInput" class="col-sm-4 col-form-label col-form-label-sm">Move delay (ms)</label>
+                                <div class="col-sm-3">
+                                    <input class="form-control form-control-sm setting" type="number" id="saveDelayInput">
+                                </div>
+                            </div>
+                            <div class="form-group-sm row" data-toggle="tooltip" title="When doing multi-day setups, this is how long to wait for the next day to load.">
+                                <label for="loadDelayInput" class="col-sm-4 col-form-label col-form-label-sm">Roster load delay (ms)</label>
+                                <div class="col-sm-3">
+                                    <input class="form-control form-control-sm setting" type="number" id="loadDelayInput">
+                                </div>
+                            </div>
+                            <div class="form-group-sm row" data-toggle="tooltip" title="When doing multi-day setups, this is the maximum number of times to wait for the roster to load before giving up.">
+                                <label for="loadMaxAttemptsInput" class="col-sm-4 col-form-label col-form-label-sm">Roster load attempts</label>
+                                <div class="col-sm-3">
+                                    <input class="form-control form-control-sm setting" type="number" id="loadMaxAttemptsInput">
+                                </div>
+                            </div>
+                        </form>
+                        <p class="card-text text-right">
+                            <a href="#" id="showSettingsPageLink" class="card-link">Settings page</a>
+                        </p>
+                    </div>
+                </div>
+            </main>
+            <footer class="text-right">
+                <button id="viewOnGitHubButton" class="btn btn-lg btn-link" title="View on GitHub"><img src="assets/GitHub-Mark-32px.png" alt="GitHub"></button>
+            </footer>
+        </wrapper>
+        <script src="lib/jquery-3.2.1.slim.min.js"></script>
+        <script src="lib/popper.min.js"></script>
+        <script src="lib/bootstrap.min.js"></script>
+    </body>
+</html>

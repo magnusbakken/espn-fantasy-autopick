@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <base target="_blank">
+
+        <title>ESPN NBA Fantasy Auto-Setup Settings</title>
+
+        <link href="lib/bootstrap.min.css" rel="stylesheet">
+        <link href="settings.css" rel="stylesheet">
+        <script src="settings-api.js"></script>
+        <script src="settings.js"></script>
+    </head>
+    <body>
+        <div class="container">
+            <div class="masthead">
+                <div class="navbar">
+                    <ul class="nav nav-pills mb-3" id="tabs-pill" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" id="tabs-settings-tab" data-toggle="tab" href="#tabs-settings" role="tab" aria-controls="tabs-settings" aria-selected="true">Settings</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="tabs-about-tab" data-toggle="tab" href="#tabs-about" role="tab" aria-controls="tabs-about" aria-selected="false">About</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="tab-content" id="tabs-tabContent">
+                <div class="tab-pane container fade show active" id="tabs-settings" role="tabpanel" aria-labelledby="tabs-settings-tab">
+                    <h2>General settings</h2>
+                    <hr>
+                    <form>
+                        <div class="form-group">
+                            <label for="saveDelayInput">Delay between automatic moves (ms)</label><br>
+                            <input class="form-field-input setting" type="number" value="" class="setting" id="saveDelayInput">
+                            <small class="form-text text-muted">If this delay is too short the save operation may fail.</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="loadDelayInput">Roster load delay (ms)</label><br>
+                            <input class="form-field-input setting" type="number" value="" class="setting" id="loadDelayInput">
+                            <small class="form-text text-muted">When doing multi-day setups, this is how long to wait for the next day to load.</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="loadMaxAttemptsInput">Maximum roster load attempts</label><br>
+                            <input class="form-field-input setting" type="number" value="" class="setting" id="loadMaxAttemptsInput">
+                            <small class="form-text text-muted">When doing multi-day setups, this is the maximum number of times to wait for the roster to load before giving up.</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="customDaysInput">Default value for custom days</label><br>
+                            <input class="form-field-input setting" type="number" value="" class="setting" id="customDaysInput">
+                            <small class="form-text text-muted">When doing multi-day setups with custom day counts, this is the default number of days.</small>
+                        </div>
+                    </form>
+                    <br>
+                    <button id="saveButton" class="btn btn-primary" disabled>Save</button>
+                </div>
+                <div class="tab-pane container fade" id="tabs-about" role="tabpanel" aria-labelledby="tabs-about-tab">
+                    <h2>About</h2>
+                    <hr>
+                    <p>
+                        Developed by Magnus Grindal Bakken.<br>
+                        You're currently using version <span class="settings-version-number"></span> of the extension.<br>
+                        View the extension on the <a href="https://chrome.google.com/webstore/detail/espn-nba-fantasy-team-aut/nmehekgchlioodlggejkfhiglajaonie">Chrome Web Store</a>.
+                    </p>
+                    <hr>
+                    <h3>Technical stuff</h3>
+                    <p>
+                        Visit the extension project on <a href="https://github.com/magnusbakken/espn-fantasy-autopick">GitHub</a> (<a href="https://github.com/magnusbakken/espn-fantasy-autopick/issues">report a bug/suggestion</a>).<br>
+                        The extension code is available under the <a href="https://opensource.org/licenses/MIT">MIT license</a>.
+                    </p>
+                    <h5>Libraries used</h5>
+                    <ul>
+                        <li>
+                            <a href="https://getbootstrap.com/">Bootstrap</a>
+                            <ul>
+                                <li><a href="https://bootswatch.com/united/">United Theme</a> by <a href="https://thomaspark.co/">Thomas Park</a></li>
+                            </ul>
+                        </li>
+                        <li><a href="https://jquery.com/">jQuery</a></li>
+                        <li><a href="https://popper.js.org/">popper.js</a></li>
+                        <li><a href="https://www.emojione.com">EmojiOne (extension icon)</a></li>
+                    </ul>
+                    <hr>
+                    <small>Copyright &copy; 2018 - Magnus Grindal Bakken</small>
+                </div>
+            </div>
+        </div>
+
+        <script src="lib/jquery-3.2.1.slim.min.js"></script>
+        <script src="lib/popper.min.js"></script>
+        <script src="lib/bootstrap.min.js"></script>
+    </body>
+</html>

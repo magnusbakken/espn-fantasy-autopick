@@ -1,0 +1,61 @@
+{
+"update_url": "https://clients2.google.com/service/update2/crx",
+
+    "name": "ESPN NHL Fantasy Team Auto Setup",
+    "description": "Automatically add active players to the current roster in an ESPN NHL fantasy league.",
+    "version": "2.4.5",
+    "manifest_version": 2,
+    "permissions": [
+        "tabs",
+        "declarativeContent",
+        "storage",
+        "*://fantasy.espn.com/hockey/team*"
+    ],
+    "icons": {
+        "32": "assets/icon-32.png",
+        "64": "assets/icon-64.png",
+        "128": "assets/icon-128.png"
+    },
+    "commands": {
+        "perform-automatic-setup": {
+            "suggested_key": {
+                "default": "Ctrl+Shift+A",
+                "mac": "Command+Shift+A"
+            },
+            "description": "Perform automatic setup for the current day"
+        },
+        "perform-current-week-setup": {
+            "suggested_key": {
+                "default": "Ctrl+Shift+W",
+                "mac": "Command+Shift+W"
+            },
+            "description": "Perform automatic setup for the current week"
+        }
+    },
+    "background": {
+        "scripts": [
+            "background.js"
+        ],
+        "persistent": false
+    },
+    "page_action": {
+        "default_title": "ESPN NHL Fantasy Team Auto Setup",
+        "default_popup": "popup.html"
+    },
+    "content_scripts": [
+        {
+            "matches": [
+                "*://*.fantasy.espn.com/hockey/team*"
+            ],
+            "js": [
+                "data.js",
+                "autosetup.js"
+            ],
+            "run_at": "document_end"
+        }
+    ],
+    "options_ui": {
+        "page": "settings.html",
+        "chrome_style": false
+    }
+}
