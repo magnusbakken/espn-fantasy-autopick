@@ -5,9 +5,10 @@ function zipFiles(filePaths, outputPath) {
     const path = require('path');
     const zip = new require('node-zip')();
     for (const filePath of filePaths) {
-        const fullPath = path.join(cwd, filePath);
-        console.log(`Adding ${fullPath} to archive...`);
-        zip.file(filePath, fs.readFileSync(fullPath));
+        const inputFilePath = Object.keys(filePath)[0];
+        const outputFilePath = filePath[inputFilePath];
+        console.log(`Adding ${inputFilePath} to archive as ${outputFilePath}...`);
+        zip.file(outputFilePath, fs.readFileSync(inputFilePath));
     }
     const data = zip.generate({ base64: false, compression: 'DEFLATE' });
     console.log(`Writing archive to ${outputPath}...`);

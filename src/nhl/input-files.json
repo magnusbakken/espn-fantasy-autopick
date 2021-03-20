@@ -1,0 +1,64 @@
+{
+    "inputFiles": [
+        {
+            "lib/bootstrap.min.css": "lib/bootstrap.min.css"
+        },
+        {
+            "lib/bootstrap.min.js": "lib/bootstrap.min.js"
+        },
+        {
+            "lib/jquery-3.2.1.slim.min.js": "lib/jquery-3.2.1.slim.min.js"
+        },
+        {
+            "lib/popper.min.js": "lib/popper.min.js"
+        },
+        {
+            "assets/GitHub-Mark-32px.png": "assets/GitHub-Mark-32px.png"
+        },
+        {
+            "assets/icon-32.png": "assets/icon-32.png"
+        },
+        {
+            "assets/icon-64.png": "assets/icon-64.png"
+        },
+        {
+            "assets/icon-128.png": "assets/icon-128.png"
+        },
+        {
+            "src/common/autosetup.js": "autosetup.js"
+        },
+        {
+            "src/common/background.js": "background.js"
+        },
+        {
+            "src/common/data.js": "data.js"
+        },
+        {
+            "src/common/popup.js": "popup.js"
+        },
+        {
+            "src/common/settings.js": "settings.js"
+        },
+        {
+            "src/nhl/data.js": "data-nhl.js"
+        },
+        {
+            "src/nhl/manifest.json": "manifest.json"
+        },
+        {
+            "src/nhl/popup.css": "popup.css"
+        },
+        {
+            "src/nhl/popup.html": "popup.html"
+        },
+        {
+            "src/nhl/settings-api.js": "settings-api.js"
+        },
+        {
+            "src/nhl/settings.css": "settings.css"
+        },
+        {
+            "src/nhl/settings.html": "settings.html"
+        }
+    ]
+}

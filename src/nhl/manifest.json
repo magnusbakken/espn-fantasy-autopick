@@ -1,13 +1,13 @@
 {
-    "name": "ESPN NBA Fantasy Team Auto Setup",
-    "description": "Automatically add active players to the current roster in an ESPN NBA fantasy league.",
-    "version": "2.4.5",
+    "name": "ESPN NHL Fantasy Team Auto Setup",
+    "description": "Automatically add active players to the current roster in an ESPN NHL fantasy league.",
+    "version": "1.0.0",
     "manifest_version": 2,
     "permissions": [
         "tabs",
         "declarativeContent",
         "storage",
-        "*://fantasy.espn.com/basketball/team*"
+        "*://fantasy.espn.com/hockey/team*"
     ],
     "icons": {
         "32": "assets/icon-32.png",
@@ -37,15 +37,16 @@
         "persistent": false
     },
     "page_action": {
-        "default_title": "ESPN NBA Fantasy Team Auto Setup",
+        "default_title": "ESPN NHL Fantasy Team Auto Setup",
         "default_popup": "popup.html"
     },
     "content_scripts": [
         {
             "matches": [
-                "*://*.fantasy.espn.com/basketball/team*"
+                "*://*.fantasy.espn.com/hockey/team*"
             ],
             "js": [
+                "data-nhl.js",
                 "data.js",
                 "autosetup.js"
             ],

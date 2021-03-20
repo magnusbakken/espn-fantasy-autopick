@@ -54,17 +54,19 @@ function updateJson(filePath, newVersion) {
     fs.writeFileSync(filePath, output, 'utf-8');
 }
 
-function findCurrentVersion(manifestFilePath) {
-    const input = fs.readFileSync(manifestFilePath, 'utf-8');
+function findCurrentVersion(packageFilePath) {
+    const input = fs.readFileSync(packageFilePath, 'utf-8');
     return Version.parse(JSON.parse(input).version);
 }
 
-function bumpVersion(releaseType, manifestFilePath, packageFilePath) {
-    const currentVersion = findCurrentVersion(manifestFilePath);
+function bumpVersion(releaseType, manifestFilePaths, packageFilePath) {
+    const currentVersion = findCurrentVersion(packageFilePath);
     const newVersion = getNextVersion(currentVersion, releaseType);
     console.log(`Bumping version number from ${currentVersion} to ${newVersion}`);
-    console.log(`Updating manifest file at ${manifestFilePath}`);
-    updateJson(manifestFilePath, newVersion);
+    for (const manifestFilePath of manifestFilePaths) {
+        console.log(`Updating manifest file at ${manifestFilePath}`);
+        updateJson(manifestFilePath, newVersion);
+    }
     console.log(`Updating package file at ${packageFilePath}`);
     updateJson(packageFilePath, newVersion);
 }
@@ -81,7 +83,7 @@ function releaseType(rt) {
 
 const optionDefinitions = [
     { name: 'releaseType', type: releaseType },
-    { name: 'manifestFilePath', type: String },
+    { name: 'manifestFilePaths', type: Array },
     { name: 'packageFilePath', type: String },
 ];
 
@@ -92,7 +94,7 @@ if (!options.releaseType) {
     console.error('No release type given (--releaseType)');
     process.exit(1);
 } else if (!options.manifestFilePath) {
-    console.error('No manifest file path given (--manifestFilePath)');
+    console.error('No manifest file paths given (--manifestFilePaths)');
     process.exit(1);
 } else if (!options.packageFilePath) {
     console.error('No package file path given (--packageFilePath)');

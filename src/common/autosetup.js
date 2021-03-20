@@ -137,7 +137,7 @@ function goToNextDay(loadDelay, loadMaxAttempts, action) {
     if (idx === 4) { // There are always 5 days per "week".
         goToNextWeek(() => goToDay(0, loadDelay, loadMaxAttempts, action));
     } else {
-        goToDay(idx+1, loadDelay, loadMaxAttempts, action);
+        goToDay(idx + 1, loadDelay, loadMaxAttempts, action);
     }
 }
 
@@ -375,7 +375,9 @@ function fixTransactionCounterTooltip() {
 function fixSetLineupLabel() {
     const label = document.querySelector('.scoring--period-label');
     if (label) {
-        label.innerText = '🏀';
+        label.innerText = '🏆';
+        label.style.cursor = 'help';
+        label.title = 'You\'re using the ESPN Fantasy Auto-Setup extension. Look at the extension options for more information.';
     }
 }
 
@@ -477,7 +479,7 @@ const observer = new MutationObserver(mutations => {
 });
 observer.observe(document.body, { childList: true, subtree: true });
 
-chrome.runtime.onMessage.addListener(function(message) {
+chrome.runtime.onMessage.addListener(function (message) {
     console.debug('Received message', message);
     if (message.commandId === 'perform-auto-setup') {
         performAutoSetup(currentSettings.saveDelay);
@@ -490,7 +492,7 @@ chrome.runtime.onMessage.addListener(function(message) {
     }
 });
 
-chrome.storage.sync.get(currentSettings, function(settings) {
+chrome.storage.sync.get(currentSettings, function (settings) {
     console.debug('Loading extension settings');
     for (const key in settings) {
         console.debug(key + ' = ' + settings[key]);

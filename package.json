@@ -1,13 +1,18 @@
 {
     "name": "espn-fantasy-autopick",
     "version": "2.4.5",
-    "description": "A Chrome extension that lets you automatically add active players to the current roster in an ESPN NBA fantasy league.",
+    "description": "A Chrome extension that lets you automatically add active players to the current roster in an ESPN NBA/NHL fantasy league.",
     "repository": "https://github.com/magnusbakken/espn-fantasy-autopick.git",
     "author": "Magnus Grindal Bakken <magnusbakken@gmail.com>",
     "license": "MIT",
     "scripts": {
-        "package": "node scripts/zip.js --inputFiles=input-files.json --zipPath=build/espn-fantasy-autopick.zip",
-        "bump-version": "node scripts/version.js --manifestFilePath=manifest.json --packageFilePath=package.json"
+        "package": "yarn run package-nba && yarn run package-nhl",
+        "package-nba": "node scripts/zip.js --inputFiles=src/nhl/input-files.json --zipPath=build/espn-fantasy-autopick-nba.zip",
+        "package-nhl": "node scripts/zip.js --inputFiles=src/nhl/input-files.json --zipPath=build/espn-fantasy-autopick-nhl.zip",
+        "unpacked": "yarn run unpacked-nba && yarn run unpacked-nhl",
+        "unpacked-nba": "node scripts/unpacked.js --inputFiles=src/nba/input-files.json --outputPath=build/nba/",
+        "unpacked-nhl": "node scripts/unpacked.js --inputFiles=src/nhl/input-files.json --outputPath=build/nhl/",
+        "bump-version": "node scripts/version.js --manifestFilePaths=src/nba/manifest.json --manifestFilePaths=src/nhl/manifest.json --packageFilePath=package.json"
     },
     "devDependencies": {
         "node-zip": "^1.1.1",

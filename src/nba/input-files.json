@@ -1,0 +1,64 @@
+{
+    "inputFiles": [
+        {
+            "lib/bootstrap.min.css": "lib/bootstrap.min.css"
+        },
+        {
+            "lib/bootstrap.min.js": "lib/bootstrap.min.js"
+        },
+        {
+            "lib/jquery-3.2.1.slim.min.js": "lib/jquery-3.2.1.slim.min.js"
+        },
+        {
+            "lib/popper.min.js": "lib/popper.min.js"
+        },
+        {
+            "assets/GitHub-Mark-32px.png": "assets/GitHub-Mark-32px.png"
+        },
+        {
+            "assets/icon-32.png": "assets/icon-32.png"
+        },
+        {
+            "assets/icon-64.png": "assets/icon-64.png"
+        },
+        {
+            "assets/icon-128.png": "assets/icon-128.png"
+        },
+        {
+            "src/common/autosetup.js": "autosetup.js"
+        },
+        {
+            "src/common/background.js": "background.js"
+        },
+        {
+            "src/common/data.js": "data.js"
+        },
+        {
+            "src/common/popup.js": "popup.js"
+        },
+        {
+            "src/common/settings.js": "settings.js"
+        },
+        {
+            "src/nba/data.js": "data-nba.js"
+        },
+        {
+            "src/nba/manifest.json": "manifest.json"
+        },
+        {
+            "src/nba/popup.css": "popup.css"
+        },
+        {
+            "src/nba/popup.html": "popup.html"
+        },
+        {
+            "src/nba/settings-api.js": "settings-api.js"
+        },
+        {
+            "src/nba/settings.css": "settings.css"
+        },
+        {
+            "src/nba/settings.html": "settings.html"
+        }
+    ]
+}
