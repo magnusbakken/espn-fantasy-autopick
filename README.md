@@ -4,6 +4,11 @@ A Chrome extension that lets you automatically add active players to the current
 # How to install
 The extension can be installed from the Chrome Web Store: https://chrome.google.com/webstore/detail/espn-nba-fantasy-team-aut/nmehekgchlioodlggejkfhiglajaonie
 
+# How to build
+Run `yarn unpacked` to create a folder suitable for loading as an unpacked extension in Chrome. `yarn package` creates a zipped version of the extension, ready to be uploaded to the extension store.
+
+To build only the NBA extension, run `yarn unpacked-nba` or `yarn package-nba`. For the NHL extension, run `yarn unpacked-nhl` or `yarn package-nhl`.
+
 # Bug reports
 If the extension isn't working properly, please report a bug on the GitHub page. To help me figure out what the problem is, the following is very helpful:
 1. Include screenshots or text that shows your roster and your league settings.
