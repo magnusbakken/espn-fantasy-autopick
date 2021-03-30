@@ -146,7 +146,7 @@ function getRosterRows() {
     const starterRows = [];
     const benchRows = [];
     const playerTable1 = tableBody[0];
-    const playerTable2 = tableBody.length > 3 ? tableBody[3] : null; // NHL and MLB have extra tables for goalies/pitchers
+    const playerTable2 = tableBody.length > 3 && tableBody[3]; // NHL and MLB have extra tables for goalies/pitchers
 
     [playerTable1, playerTable2].forEach((table) => {
         if (!table) {
