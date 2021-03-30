@@ -142,39 +142,28 @@ function goToNextDay(loadDelay, loadMaxAttempts, action) {
 }
 
 function getRosterRows() {
-    const tableBody = document.querySelector('.players-table tbody.Table__TBODY');
+    const tableBody = document.querySelectorAll('.players-table tbody.Table__TBODY');
     const starterRows = [];
     const benchRows = [];
-    for (const row of tableBody.getElementsByTagName('tr')) {
-        const slotCell = row.getElementsByTagName('td')[0];
-        const slotType = parseSlotType(slotCell.textContent);
-        if (slotType === SLOT_TYPE_BENCH || slotType === SLOT_TYPE_IR) {
-            benchRows.push(row);
-        } else {
-            starterRows.push(row);
-        }
-    }
-    return { starterRows, benchRows };
-}
+    const playerTable1 = tableBody[0];
+    const playerTable2 = tableBody.length > 3 && tableBody[3]; // NHL and MLB have extra tables for goalies/pitchers
 
-function parseSlotType(text) {
-    switch (text) {
-        case 'PG': return SLOT_TYPE_POINT_GUARD;
-        case 'SG': return SLOT_TYPE_SHOOTING_GUARD;
-        case 'SF': return SLOT_TYPE_SMALL_FORWARD;
-        case 'PF': return SLOT_TYPE_POWER_FORWARD;
-        case 'C': return SLOT_TYPE_CENTER;
-        case 'G': return SLOT_TYPE_GUARD;
-        case 'F': return SLOT_TYPE_FORWARD;
-        case 'SG/SF': return SLOT_TYPE_SHOOTING_GUARD_SMALL_FORWARD;
-        case 'G/F': return SLOT_TYPE_GUARD_FORWARD;
-        case 'PF/C': return SLOT_TYPE_POWER_FORWARD_CENTER;
-        case 'F/C': return SLOT_TYPE_FORWARD_CENTER;
-        case 'UTIL': return SLOT_TYPE_UTIL;
-        case 'Bench': return SLOT_TYPE_BENCH;
-        case 'IR': return SLOT_TYPE_IR;
-        default: throw new Error('Unknown slot type: ' + text);
-    }
+    [playerTable1, playerTable2].forEach((table) => {
+        if (!table) {
+            return;
+        }
+
+        for (const row of table.getElementsByTagName('tr')) {
+            const slotCell = row.getElementsByTagName('td')[0];
+            const slotType = parseSlotType(slotCell.textContent);
+            if (slotType === SLOT_TYPE_BENCH || slotType === SLOT_TYPE_IR) {
+                benchRows.push(row);
+            } else {
+                starterRows.push(row);
+            }
+        }
+    })
+    return { starterRows, benchRows };
 }
 
 function createActivePlayerSlot(row, slotId) {
