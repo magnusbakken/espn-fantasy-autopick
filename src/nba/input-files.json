@@ -1,10 +1,10 @@
 {
     "inputFiles": [
         {
-            "lib/bootstrap.min.css": "lib/bootstrap.min.css"
+            "lib/nba/bootstrap.min.css": "lib/bootstrap.min.css"
         },
         {
-            "lib/bootstrap.min.js": "lib/bootstrap.min.js"
+            "lib/nba/bootstrap.min.js": "lib/bootstrap.min.js"
         },
         {
             "lib/jquery-3.2.1.slim.min.js": "lib/jquery-3.2.1.slim.min.js"
@@ -28,9 +28,6 @@
             "src/common/autosetup.js": "autosetup.js"
         },
         {
-            "src/common/background.js": "background.js"
-        },
-        {
             "src/common/data.js": "data.js"
         },
         {
@@ -38,6 +35,9 @@
         },
         {
             "src/common/settings.js": "settings.js"
+        },
+        {
+            "src/nba/background.js": "background.js"
         },
         {
             "src/nba/data.js": "data-nba.js"
