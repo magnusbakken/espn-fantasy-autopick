@@ -16,13 +16,13 @@
             "assets/GitHub-Mark-32px.png": "assets/GitHub-Mark-32px.png"
         },
         {
-            "assets/icon-32.png": "assets/icon-32.png"
+            "assets/nhl/icon-32.png": "assets/icon-32.png"
         },
         {
-            "assets/icon-64.png": "assets/icon-64.png"
+            "assets/nhl/icon-64.png": "assets/icon-64.png"
         },
         {
-            "assets/icon-128.png": "assets/icon-128.png"
+            "assets/nhl/icon-128.png": "assets/icon-128.png"
         },
         {
             "src/common/autosetup.js": "autosetup.js"
