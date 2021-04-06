@@ -1,8 +1,10 @@
 # ESPN Fantasy Autopick Chrome Extension
-A Chrome extension that lets you automatically add active players to the current roster in an ESPN NBA/NHL fantasy league.
+A pair of Chrome extensions that let you automatically add active players to the current roster in an ESPN NBA/NHL fantasy league.
 
 # How to install
-The extension can be installed from the Chrome Web Store: https://chrome.google.com/webstore/detail/espn-nba-fantasy-team-aut/nmehekgchlioodlggejkfhiglajaonie
+The extensions can be found in the Chrome Web Store:
+- [NBA](https://chrome.google.com/webstore/detail/espn-nba-fantasy-team-aut/nmehekgchlioodlggejkfhiglajaonie)
+- [NHL](https://chrome.google.com/webstore/detail/espn-nhl-fantasy-team-aut/nageaaodmancfbkhklidfjdhahghejle)
 
 # How to build
 Run `yarn unpacked` to create a folder suitable for loading as an unpacked extension in Chrome. `yarn package` creates a zipped version of the extension, ready to be uploaded to the extension store.
