@@ -40,12 +40,6 @@ function getNextVersion(version, releaseType) {
     }
 }
 
-function versionUpdater(newVersion) {
-    return (match, leadingWhitespace, version, comma, trailingWhitespace, offset, string) => {
-        return `${leadingWhitespace}'version': ${newVersion.toString()}${comma}${trailingWhitespace}`;
-    };
-}
-
 function updateJson(filePath, newVersion) {
     const input = fs.readFileSync(filePath, 'utf-8');
     const json = JSON.parse(input);
@@ -83,7 +77,7 @@ function releaseType(rt) {
 
 const optionDefinitions = [
     { name: 'releaseType', type: releaseType },
-    { name: 'manifestFilePaths', type: Array },
+    { name: 'manifestFilePaths', type: String, multiple: true },
     { name: 'packageFilePath', type: String },
 ];
 
@@ -93,12 +87,12 @@ const options = commandLineArgs(optionDefinitions);
 if (!options.releaseType) {
     console.error('No release type given (--releaseType)');
     process.exit(1);
-} else if (!options.manifestFilePath) {
+} else if (!options.manifestFilePaths) {
     console.error('No manifest file paths given (--manifestFilePaths)');
     process.exit(1);
 } else if (!options.packageFilePath) {
     console.error('No package file path given (--packageFilePath)');
     process.exit(1);
 } else {
-    bumpVersion(options.releaseType, options.manifestFilePath, options.packageFilePath);
+    bumpVersion(options.releaseType, options.manifestFilePaths, options.packageFilePath);
 }

@@ -1,10 +1,10 @@
 {
     "inputFiles": [
         {
-            "lib/bootstrap.min.css": "lib/bootstrap.min.css"
+            "lib/nhl/bootstrap.min.css": "lib/bootstrap.min.css"
         },
         {
-            "lib/bootstrap.min.js": "lib/bootstrap.min.js"
+            "lib/nhl/bootstrap.min.js": "lib/bootstrap.min.js"
         },
         {
             "lib/jquery-3.2.1.slim.min.js": "lib/jquery-3.2.1.slim.min.js"
@@ -16,19 +16,16 @@
             "assets/GitHub-Mark-32px.png": "assets/GitHub-Mark-32px.png"
         },
         {
-            "assets/icon-32.png": "assets/icon-32.png"
+            "assets/nhl/icon-32.png": "assets/icon-32.png"
         },
         {
-            "assets/icon-64.png": "assets/icon-64.png"
+            "assets/nhl/icon-64.png": "assets/icon-64.png"
         },
         {
-            "assets/icon-128.png": "assets/icon-128.png"
+            "assets/nhl/icon-128.png": "assets/icon-128.png"
         },
         {
             "src/common/autosetup.js": "autosetup.js"
-        },
-        {
-            "src/common/background.js": "background.js"
         },
         {
             "src/common/data.js": "data.js"
@@ -38,6 +35,9 @@
         },
         {
             "src/common/settings.js": "settings.js"
+        },
+        {
+            "src/nhl/background.js": "background.js"
         },
         {
             "src/nhl/data.js": "data-nhl.js"
