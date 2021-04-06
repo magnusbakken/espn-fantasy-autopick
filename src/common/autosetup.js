@@ -146,7 +146,16 @@ function getRosterRows() {
     const starterRows = [];
     const benchRows = [];
     const playerTable1 = tableBody[0];
-    const playerTable2 = tableBody.length > 3 && tableBody[3]; // NHL and MLB have extra tables for goalies/pitchers
+    
+    // NHL and MLB have extra tables for goalies/pitchers
+    let playerTable2 = null;
+    if (tableBody.length === 4) {
+        // Category leagues
+        playerTable2 = tableBody[2];
+    } else if (tableBody.length === 6) {
+        // Points leagues (extra table for fantasy points)
+        playerTable2 = tableBody[3];
+    }
 
     [playerTable1, playerTable2].forEach((table) => {
         if (!table) {
@@ -156,7 +165,7 @@ function getRosterRows() {
         for (const row of table.getElementsByTagName('tr')) {
             const slotCell = row.getElementsByTagName('td')[0];
             const slotType = parseSlotType(slotCell.textContent);
-            if (slotType === SLOT_TYPE_BENCH || slotType === SLOT_TYPE_IR) {
+            if (slotType === SLOT_TYPE_BENCH) {
                 benchRows.push(row);
             } else {
                 starterRows.push(row);
