@@ -142,13 +142,10 @@ function goToNextDay(loadDelay, loadMaxAttempts, action) {
 }
 
 function getRosterRows() {
-    const tableBody = document.querySelectorAll('.players-table tbody.Table__TBODY');
+    const playerTables = document.querySelectorAll('.players-table table.Table--fixed-left tbody.Table__TBODY');
     const starterRows = [];
     const benchRows = [];
-    const playerTable1 = tableBody[0];
-    const playerTable2 = tableBody.length > 3 && tableBody[3]; // NHL and MLB have extra tables for goalies/pitchers
-
-    [playerTable1, playerTable2].forEach((table) => {
+    playerTables.forEach((table) => {
         if (!table) {
             return;
         }
@@ -156,7 +153,7 @@ function getRosterRows() {
         for (const row of table.getElementsByTagName('tr')) {
             const slotCell = row.getElementsByTagName('td')[0];
             const slotType = parseSlotType(slotCell.textContent);
-            if (slotType === SLOT_TYPE_BENCH || slotType === SLOT_TYPE_IR) {
+            if (slotType === SLOT_TYPE_BENCH) {
                 benchRows.push(row);
             } else {
                 starterRows.push(row);
