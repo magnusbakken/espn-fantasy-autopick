@@ -142,13 +142,10 @@ function goToNextDay(loadDelay, loadMaxAttempts, action) {
 }
 
 function getRosterRows() {
-    const tableBody = document.querySelectorAll('.players-table tbody.Table__TBODY');
+    const playerTables = document.querySelectorAll('.players-table table.Table--fixed-left tbody.Table__TBODY');
     const starterRows = [];
     const benchRows = [];
-    const playerTable1 = tableBody[0];
-    const playerTable2 = tableBody.length > 3 && tableBody[tableBody.length / 2]; // NHL and MLB have extra tables for goalies/pitchers.
-
-    [playerTable1, playerTable2].forEach((table) => {
+    playerTables.forEach((table) => {
         if (!table) {
             return;
         }
