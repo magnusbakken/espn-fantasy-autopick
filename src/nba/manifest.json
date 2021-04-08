@@ -4,7 +4,6 @@
     "version": "3.0.2",
     "manifest_version": 2,
     "permissions": [
-        "tabs",
         "declarativeContent",
         "storage",
         "*://fantasy.espn.com/basketball/team*"
