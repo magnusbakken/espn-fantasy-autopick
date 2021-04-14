@@ -6,7 +6,6 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
     }
 });
 
-
 function performAutoSetup() {
     chrome.tabs.executeScript(null, { code: 'performAutoSetup()' });
 }
