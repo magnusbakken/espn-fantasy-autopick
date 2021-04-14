@@ -1,10 +1,9 @@
 {
     "name": "ESPN NBA Fantasy Team Auto Setup",
     "description": "Automatically add active players to the current roster in an ESPN NBA fantasy league.",
-    "version": "3.0.3",
+    "version": "3.0.4",
     "manifest_version": 2,
     "permissions": [
-        "declarativeContent",
         "storage",
         "*://fantasy.espn.com/basketball/team*"
     ],
