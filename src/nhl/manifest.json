@@ -1,10 +1,9 @@
 {
     "name": "ESPN NHL Fantasy Team Auto Setup",
     "description": "Automatically add active players to the current roster in an ESPN NHL fantasy league.",
-    "version": "3.0.1",
+    "version": "3.0.3",
     "manifest_version": 2,
     "permissions": [
-        "tabs",
         "declarativeContent",
         "storage",
         "*://fantasy.espn.com/hockey/team*"
