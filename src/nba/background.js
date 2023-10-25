@@ -1,16 +1,9 @@
-chrome.runtime.onInstalled.addListener(function() {
-    chrome.declarativeContent.onPageChanged.removeRules(undefined, function() {
-        chrome.declarativeContent.onPageChanged.addRules([
-            {
-                conditions: [
-                    new chrome.declarativeContent.PageStateMatcher({
-                        pageUrl: { hostEquals: 'fantasy.espn.com', pathPrefix: '/basketball/team' },
-                    })
-                ],
-                actions: [ new chrome.declarativeContent.ShowPageAction() ]
-            }
-        ]);
-    });
+chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
+    if (changeInfo.status === 'complete' && tab.url.match(/fantasy.espn.com\/basketball\/team/)) {
+        chrome.pageAction.show(tabId);
+    } else {
+        chrome.pageAction.hide(tabId);
+    }
 });
 
 function performAutoSetup() {
