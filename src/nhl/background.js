@@ -1,8 +1,10 @@
-chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
-    if (changeInfo.status === 'complete' && tab.url.match(/fantasy.espn.com\/hockey\/team/)) {
-        chrome.pageAction.show(tabId);
-    } else {
-        chrome.pageAction.hide(tabId);
+chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
+    if (changeInfo.status === 'complete') {
+        if (tab.url && tab.url.match(/fantasy.espn.com\/hockey\/team/)) {
+            chrome.pageAction.show(tabId);
+        } else {
+            chrome.pageAction.hide(tabId);
+        }
     }
 });
 
