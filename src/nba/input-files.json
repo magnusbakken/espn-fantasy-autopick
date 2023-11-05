@@ -37,9 +37,6 @@
             "src/common/settings.js": "settings.js"
         },
         {
-            "src/nba/background.js": "background.js"
-        },
-        {
             "src/nba/data.js": "data-nba.js"
         },
         {
