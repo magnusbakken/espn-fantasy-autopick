@@ -6,10 +6,10 @@
     "author": "Magnus Grindal Bakken <magnusbakken@gmail.com>",
     "license": "MIT",
     "scripts": {
-        "package": "yarn run package-nba && yarn run package-nhl",
+        "package": "pnpm run package-nba && pnpm run package-nhl",
         "package-nba": "node scripts/zip.js --inputFiles=src/nba/input-files.json --zipPath=build/espn-fantasy-autopick-nba.zip",
         "package-nhl": "node scripts/zip.js --inputFiles=src/nhl/input-files.json --zipPath=build/espn-fantasy-autopick-nhl.zip",
-        "unpacked": "yarn run unpacked-nba && yarn run unpacked-nhl",
+        "unpacked": "pnpm run unpacked-nba && pnpm run unpacked-nhl",
         "unpacked-nba": "node scripts/unpacked.js --inputFiles=src/nba/input-files.json --outputPath=build/nba/",
         "unpacked-nhl": "node scripts/unpacked.js --inputFiles=src/nhl/input-files.json --outputPath=build/nhl/",
         "bump-version": "node scripts/version.js --manifestFilePaths=src/nba/manifest.json --manifestFilePaths=src/nhl/manifest.json --packageFilePath=package.json"
