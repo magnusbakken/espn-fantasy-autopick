@@ -1,35 +1,39 @@
-function performSetup(command, message) {
-    chrome.tabs.getSelected(null, function (tab) {
-        chrome.tabs.sendMessage(tab.id, {
-            commandId: command,
-            message: message,
-        }); 
+async function getCurrentTab() {
+    const queryOptions = { active: true, lastFocusedWindow: true };
+    const [tab] = await chrome.tabs.query(queryOptions);
+    return tab;
+}
+
+async function performSetup(command, message) {
+    const tab = await getCurrentTab();
+    chrome.tabs.sendMessage(tab.id, {
+        commandId: command,
+        message: message,
     });
 }
 
-function performCurrentDaySetup() {
+async function performCurrentDaySetup() {
     console.debug('Performing auto-setup for current day');
-    performSetup('perform-auto-setup');
+    await performSetup('perform-auto-setup');
 }
 
-function performCurrentWeekSetup() {
+async function performCurrentWeekSetup() {
     console.debug('Performing auto-setup for current week');
-    performSetup('perform-current-week-setup');
+    await performSetup('perform-current-week-setup');
 }
 
-function performCustomMultiDaySetup() {
+async function performCustomMultiDaySetup() {
     const customDays = parseInt(document.getElementById('customDaysInput').value);
     console.debug(`Performing auto-setup for ${customDays} days`);
-    performSetup('perform-multi-setup', { days: customDays });
+    await performSetup('perform-multi-setup', { days: customDays });
 }
 
-function viewOnGitHub() {
+async function viewOnGitHub() {
     console.debug('Opening GitHub page');
-    chrome.tabs.getSelected(null, function (tab) {
-        chrome.tabs.create({
-            openerTabId: tab.id,
-            url: 'https://github.com/magnusbakken/espn-fantasy-autopick'
-        });
+    const tab = await getCurrentTab();
+    chrome.tabs.create({
+        openerTabId: tab.id,
+        url: 'https://github.com/magnusbakken/espn-fantasy-autopick'
     });
 }
 
@@ -68,6 +72,10 @@ function on(selector, event, action) {
     document.querySelector(selector).addEventListener(event, action);
 }
 
+async function onAsync(selector, event, action) {
+    document.querySelector(selector).addEventListener(event, async () => await action());
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     console.debug('Loading popup...');
     const manifest = chrome.runtime.getManifest();
@@ -77,10 +85,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // This input field is inside a button.
     document.querySelector('#customDaysInput').onclick = e => e.stopPropagation();
 
-    on('#setupCurrentPageButton', 'click', performCurrentDaySetup);
-    on('#setupCurrentWeekButton', 'click', performCurrentWeekSetup)
-    on('#setupCustomDaysButton', 'click', performCustomMultiDaySetup)
-    on('#viewOnGitHubButton', 'click', viewOnGitHub);
+    onAsync('#setupCurrentPageButton', 'click', performCurrentDaySetup);
+    onAsync('#setupCurrentWeekButton', 'click', performCurrentWeekSetup)
+    onAsync('#setupCustomDaysButton', 'click', performCustomMultiDaySetup)
+    onAsync('#viewOnGitHubButton', 'click', viewOnGitHub);
     on('#saveDelayInput', 'input', changeSaveDelay);
     on('#loadDelayInput', 'input', changeLoadDelay);
     on('#loadMaxAttemptsInput', 'input', changeLoadMaxAttempts);
