@@ -468,7 +468,7 @@ observer.observe(document.body, { childList: true, subtree: true });
 chrome.runtime.onMessage.addListener(function (message) {
     console.debug('Received message', message);
     if (message.commandId === 'perform-auto-setup') {
-        performAutoSetup(currentSettings.saveDelay);
+        performAutoSetup();
     } else if (message.commandId === 'perform-current-week-setup') {
         performMultiDaySetup('current-week');
     } else if (message.commandId === 'perform-multi-setup') {
