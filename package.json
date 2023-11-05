@@ -17,5 +17,6 @@
     "devDependencies": {
         "node-zip": "^1.1.1",
         "command-line-args": "^5.0.1"
-    }
+    },
+    "packageManager": "pnpm@8.10.2"
 }
