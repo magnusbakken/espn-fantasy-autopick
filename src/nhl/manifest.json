@@ -4,7 +4,8 @@
     "version": "3.0.3",
     "manifest_version": 3,
     "permissions": [
-        "storage"
+        "storage",
+        "tabs"
     ],
     "host_permissions": [
         "*://fantasy.espn.com/hockey/team*"

@@ -6,10 +6,14 @@ async function getCurrentTab() {
 
 async function performSetup(command, message) {
     const tab = await getCurrentTab();
-    chrome.tabs.sendMessage(tab.id, {
-        commandId: command,
-        message: message,
-    });
+    try {
+        chrome.tabs.sendMessage(tab.id, {
+            commandId: command,
+            message: message,
+        });
+    } catch (e) {
+        console.error("Unable to send message to ESPN tab", e);
+    }
 }
 
 async function performCurrentDaySetup() {
@@ -37,35 +41,39 @@ async function viewOnGitHub() {
     });
 }
 
-function changeSaveDelay() {
+async function changeSaveDelay() {
     const saveDelayInput = document.getElementById('saveDelayInput');
-    updateSettings(settings => settings.saveDelay = parseInt(saveDelayInput.value));
+    await updateSettings(settings => settings.saveDelay = parseInt(saveDelayInput.value));
 }
 
-function changeLoadDelay() {
+async function changeLoadDelay() {
     const loadDelayInput = document.getElementById('loadDelayInput');
-    updateSettings(settings => settings.loadDelay = parseInt(loadDelayInput.value));
+    await updateSettings(settings => settings.loadDelay = parseInt(loadDelayInput.value));
 }
 
-function changeLoadMaxAttempts() {
+async function changeLoadMaxAttempts() {
     const loadMaxAttemptsInput = document.getElementById('loadMaxAttemptsInput');
-    updateSettings(settings => settings.loadMaxAttempts = parseInt(loadMaxAttemptsInput.value));
+    await updateSettings(settings => settings.loadMaxAttempts = parseInt(loadMaxAttemptsInput.value));
 }
 
-function changeCustomDaysDefault() {
+async function changeCustomDaysDefault() {
     const customDaysInput = document.getElementById('customDaysInput');
-    updateSettings(settings => settings.customDaysDefault = parseInt(customDaysInput.value));
+    await updateSettings(settings => settings.customDaysDefault = parseInt(customDaysInput.value));
 }
 
-function updateSettings(action) {
-    withSettings(settings => {
-        action(settings);
-        saveSettings(settings);
-    });
+async function updateSettings(action) {
+    const settings = await getSettings();
+    action(settings);
+    await saveSettings(settings);
 }
 
 function showSettingsPage() {
     chrome.runtime.openOptionsPage();
+}
+
+async function isOnFantasyPage() {
+    const tab = await getCurrentTab();
+    return URL_REGEX.test(tab.url);
 }
 
 function on(selector, event, action) {
@@ -76,22 +84,29 @@ async function onAsync(selector, event, action) {
     document.querySelector(selector).addEventListener(event, async () => await action());
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     console.debug('Loading popup...');
     const manifest = chrome.runtime.getManifest();
     document.querySelector('.popup-version-number').innerText = `(${manifest.version})`;
-    withSettings(restoreSettings);
+    const settings = await getSettings();
+    restoreSettings(settings);
 
-    // This input field is inside a button.
-    document.querySelector('#customDaysInput').onclick = e => e.stopPropagation();
-
-    onAsync('#setupCurrentPageButton', 'click', performCurrentDaySetup);
-    onAsync('#setupCurrentWeekButton', 'click', performCurrentWeekSetup)
-    onAsync('#setupCustomDaysButton', 'click', performCustomMultiDaySetup)
-    onAsync('#viewOnGitHubButton', 'click', viewOnGitHub);
-    on('#saveDelayInput', 'input', changeSaveDelay);
-    on('#loadDelayInput', 'input', changeLoadDelay);
-    on('#loadMaxAttemptsInput', 'input', changeLoadMaxAttempts);
-    on('#customDaysInput', 'input', changeCustomDaysDefault)
     on('#showSettingsPageLink', 'click', showSettingsPage);
+    onAsync('#viewOnGitHubButton', 'click', viewOnGitHub);
+
+    if (await isOnFantasyPage()) {
+        // This input field is inside a button.
+        document.querySelector('#customDaysInput').onclick = e => e.stopPropagation();
+
+        onAsync('#setupCurrentPageButton', 'click', performCurrentDaySetup);
+        onAsync('#setupCurrentWeekButton', 'click', performCurrentWeekSetup)
+        onAsync('#setupCustomDaysButton', 'click', performCustomMultiDaySetup)
+        on('#saveDelayInput', 'input', changeSaveDelay);
+        on('#loadDelayInput', 'input', changeLoadDelay);
+        on('#loadMaxAttemptsInput', 'input', changeLoadMaxAttempts);
+        on('#customDaysInput', 'input', changeCustomDaysDefault);
+    } else {
+        const mainElement = document.querySelector('main');
+        mainElement.innerHTML = '<div style="padding-left: 10px">Go to your team page to use the extension.</div>';
+    }
 });

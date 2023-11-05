@@ -1,3 +1,5 @@
+URL_REGEX = /.*fantasy\.espn\.com\/hockey\/team.*/;
+
 DEFAULT_OPTIONS = {
     saveDelay: 1000,
     loadDelay: 1000,
@@ -15,22 +17,21 @@ function restoreSettings(settings) {
     document.getElementById('customDaysInput').value = parseInt(settings.customDaysDefault);
 }
 
-function saveSettings(settings) {
+async function saveSettings(settings) {
     console.debug('Saving settings', settings);
-    chrome.storage.sync.set(settings, () => {
-        chrome.tabs.query({ url: '*://*.fantasy.espn.com/basketball/team*' }, tabs => {
-            const message = {
-                commandId: 'settings-changed',
-                settings: settings,
-            };
-            for (const tab of tabs) {
-                console.debug('Sending updated settings to tab', tab, message);
-                chrome.tabs.sendMessage(tab.id, message);
-            }
-        })
+    await chrome.storage.sync.set(settings);
+    chrome.tabs.query({ url: '*://*.fantasy.espn.com/hockey/team*' }, tabs => {
+        const message = {
+            commandId: 'settings-changed',
+            settings: settings,
+        };
+        for (const tab of tabs) {
+            console.debug('Sending updated settings to tab', tab, message);
+            chrome.tabs.sendMessage(tab.id, message);
+        }
     });
 }
 
-function withSettings(action) {
-    chrome.storage.sync.get(DEFAULT_OPTIONS, action);
+async function getSettings() {
+    return await chrome.storage.sync.get(DEFAULT_OPTIONS);
 }

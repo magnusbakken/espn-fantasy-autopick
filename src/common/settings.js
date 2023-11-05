@@ -44,14 +44,13 @@ function on(selector, event, action) {
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     console.debug('Loading settings...');
     const manifest = chrome.runtime.getManifest();
     document.querySelector('.settings-version-number').innerText = manifest.version;
-    withSettings(settings => {
-        restoreSettings(settings);
-        originalSettings = settings;
-    });
+    const settings = await getSettings();
+    restoreSettings(settings);
+    originalSettings = settings;
     on('.setting', 'change', settingsUpdated);
     on('.setting', 'input', settingsUpdated);
     on('#saveButton', 'click', performSave);
