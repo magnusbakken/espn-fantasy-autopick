@@ -292,32 +292,34 @@ function performMove(currentRosterState, newMapping, saveDelay, action) {
     }
     const currentPlayer = currentRosterState.starterMapping.get(slotId);
     if (currentPlayer === null || currentPlayer.playerId !== player.playerId) {
-        console.debug('Moving player to slot', player, slotId);
-        // Wait for a short while between sending clicks to the Move button and to the Here button.
-        // Without this we get intermittent errors from the click handlers on the ESPN page.
-        const moveButton = getMoveButton(player);
-        if (moveButton === null) {
-            const lockedButton = getLockedButton(player);
-            if (lockedButton === null) {
-                console.warn('No Move button found, and we don\'t know why.');
-            } else {
-                console.debug('Unable to perform move because the player\'s slot is locked. This is probably because the player\'s game has already started, or is about to start.');
-            }
-            return;
-        } else {
-            moveButton.click();
-        }
         setTimeout(() => {
-            const hereButton = getHereButton(slotId);
-            if (hereButton === null) {
-                // If we can't find a Here button it's because the move isn't possible for some reason.
-                // The most likely reason for this is that we're attempting to move a player in a UTIL slot to a different UTIL slot.
-                // We need to 'roll back' the move by clicking the Move button again.
-                moveButton.click();
+            console.debug('Moving player to slot', player, slotId);
+            // Wait for a short while between sending clicks to the Move button and to the Here button.
+            // Without this we get intermittent errors from the click handlers on the ESPN page.
+            const moveButton = getMoveButton(player);
+            if (moveButton === null) {
+                const lockedButton = getLockedButton(player);
+                if (lockedButton === null) {
+                    console.warn('No Move button found, and we don\'t know why.');
+                } else {
+                    console.debug('Unable to perform move because the player\'s slot is locked. This is probably because the player\'s game has already started, or is about to start.');
+                }
+                return;
             } else {
-                hereButton.click();
+                moveButton.click();
             }
-            setTimeout(() => performMove(currentRosterState, remainingMapping, delay, action), delay);
+            setTimeout(() => {
+                const hereButton = getHereButton(slotId);
+                if (hereButton === null) {
+                    // If we can't find a Here button it's because the move isn't possible for some reason.
+                    // The most likely reason for this is that we're attempting to move a player in a UTIL slot to a different UTIL slot.
+                    // We need to 'roll back' the move by clicking the Move button again.
+                    moveButton.click();
+                } else {
+                    hereButton.click();
+                }
+                setTimeout(() => performMove(currentRosterState, remainingMapping, delay, action), delay);
+            }, delay);
         }, delay);
     } else {
         if (currentPlayer !== null && currentPlayer.playerId === player.playerId) {
