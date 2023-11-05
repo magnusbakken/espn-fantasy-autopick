@@ -1,12 +1,3 @@
-chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
-    if (changeInfo.status === 'complete') {
-        if (tab.url && tab.url.match(/fantasy.espn.com\/basketball\/team/)) {
-            chrome.pageAction.show(tabId);
-        } else {
-            chrome.pageAction.hide(tabId);
-        }
-    }
-});
 
 function performAutoSetup() {
     chrome.tabs.executeScript(null, { code: 'performAutoSetup()' });
